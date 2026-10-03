@@ -13,7 +13,8 @@ function mobile(processed: string[], omitContract = false) {
   return `<html><body><div data-slot="card"><div data-slot="card-description">u/Fixture</div>
     <div role="progressbar" aria-label="Publishing progress" aria-valuenow="${processed.length}" aria-valuemax="2"
       ${omitContract ? '' : `data-mobile-target="reddit" data-mobile-processed-slugs='${JSON.stringify(processed)}'`}></div>
-    <h2>Fixture 1</h2><p>/fixture-1</p><button>Prepare this post</button></div></body></html>`;
+    <h2>Fixture 1</h2><p>/fixture-1</p><button>Prepare this post</button>
+    <div hidden role="dialog"><h2>Confirm action</h2></div></div></body></html>`;
 }
 function archive() {
   return `<html><body><h1>Historical content archive</h1>${[2, 1].map(index => `<div data-slot="card"

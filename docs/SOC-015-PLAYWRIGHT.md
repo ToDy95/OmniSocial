@@ -143,3 +143,18 @@ The actual Photos tab, file input and Select photos button were observed on both
 TikTok accounts. Post-upload fields and music controls still need calibration.
 No provider file
 upload, Post click, cloud Prepare or result write has been performed.
+
+## Post-merge source verification
+
+On 2026-10-03, OmniSocial PRs #14 and #15 were squash merged as `b4ae571`
+and `7e40dd6`. Portfolio PR #133 was squash merged as `bbb37c0`; Vercel
+reported its production deployment READY with the portfolio custom domains.
+The live owner page exposes the TOD-127 progress attributes.
+
+Read-only source discovery found Personal at 45/46 and Business at 35/46,
+producing twelve exact review items without cloud preparation or publication.
+A hidden confirmation dialog adds an unrelated h2 inside the prepared Business
+card. Queue discovery now selects visible post headings; the intercepted source
+fixture includes this hidden dialog regression. All 42 tests and strict TypeScript
+passed. Post-upload composer and receipt calibration, exact pilot approval and
+remaining account setup are still pending.
