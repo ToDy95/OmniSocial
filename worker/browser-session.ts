@@ -1,8 +1,9 @@
 import { chromium, type BrowserContext, type Locator, type Page } from 'playwright';
-import { chmodSync } from 'node:fs';
+import { chmodSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { protectDirectory, root } from './local.ts';
-import { portfolioOrigin, providerOrigins } from './browser-config.ts';
+import { portfolioOrigin, providerOrigins, composers, type BrowserAccount } from './browser-config.ts';
+import { fingerprint } from './planner.ts';
 import type { Target } from './planner.ts';
 
 export class BrowserStop extends Error {
@@ -79,6 +80,42 @@ export class BrowserSessions {
     await page.goto(url, { waitUntil: 'domcontentloaded' });
     await page.bringToFront();
     return { status: 'awaiting_owner_login', target };
+  }
+  async inspect(target: Target, view: 'identity' | 'composer', account: BrowserAccount, jobId: string) {
+    if (!/^[a-zA-Z0-9-]{1,72}$/.test(jobId)) throw new BrowserStop('inspection_input_invalid');
+    const page = await this.page(target);
+    const origin = providerOrigins[target];
+    const url = view === 'identity' ? account.identityUrl : `${origin}${composers[target]}`;
+    if (new URL(url).origin !== origin) throw new BrowserStop('inspection_origin_invalid');
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await assertSession(page, origin);
+    if (target.startsWith('tiktok') && view === 'identity') await page.locator('a[href*="/@"]').first().waitFor();
+    if (target.startsWith('tiktok') && view === 'composer') {
+      await page.getByRole('tab', { name: 'Photos', exact: true }).waitFor({ state: 'visible', timeout: 30_000 });
+    }
+    const controls = await page.locator('button, input:not([type="password"]), textarea, select, a, label, [role="tab"], [contenteditable="true"]')
+      .evaluateAll(elements => elements.slice(0, 500).map(element => {
+        const attributes: Record<string, string> = {};
+        for (const name of ['id', 'class', 'name', 'type', 'role', 'aria-label', 'aria-selected', 'data-e2e', 'data-testid']) {
+          const value = element.getAttribute(name); if (value) attributes[name] = value.slice(0, 250);
+        }
+        if (element instanceof HTMLAnchorElement) {
+          try { const link = new URL(element.href); if (link.origin === location.origin) attributes.href = link.pathname; } catch {}
+        }
+        const box = element.getBoundingClientRect();
+        return { tag: element.tagName.toLowerCase(), attributes,
+          text: /^(BUTTON|A|LABEL)$/.test(element.tagName) || element.getAttribute('role') === 'tab'
+            ? (element.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 180) : '',
+          visible: box.width > 0 && box.height > 0 };
+      }));
+    await assertSession(page, origin);
+    const directory = join(root, 'runtime/reports', `inspect-${jobId}`);
+    protectDirectory(directory);
+    const report = { target, view, url: new URL(page.url()).origin + new URL(page.url()).pathname,
+      title: await page.title(), observedAt: new Date().toISOString(), controls };
+    writeFileSync(join(directory, 'controls.json'), JSON.stringify(report, null, 2), { mode: 0o600 });
+    await this.evidence(page, `inspect-${jobId}`, fingerprint({ target, view }), 'ui_inspection');
+    return { status: 'inspection_ready', target, view, report: join(directory, 'controls.json') };
   }
   async evidence(page: Page, runId: string, itemId: string, stage: string) {
     if (!/^[a-zA-Z0-9-]{1,80}$/.test(runId) || !/^[a-f0-9]{64}$/.test(itemId)

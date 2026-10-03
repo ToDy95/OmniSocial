@@ -27,7 +27,7 @@ export function createWorker(token: string, journalReady: () => boolean, operati
     if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
       return reply(401, { error: 'unauthorized' });
     }
-    const browserCommand = /^\/v1\/browser\/(plan|publish|login|reconcile|stop|close)$/.exec(req.url ?? '');
+    const browserCommand = /^\/v1\/browser\/(plan|publish|login|inspect|reconcile|stop|close)$/.exec(req.url ?? '');
     const browserStatus = /^\/v1\/browser\/jobs\/([a-zA-Z0-9-]{1,80})$/.exec(req.url ?? '');
     if (browser && (browserCommand && req.method === 'POST' || browserStatus && req.method === 'GET')) {
       try {

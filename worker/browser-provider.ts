@@ -71,6 +71,7 @@ export class BrowserProvider {
     await assertSession(page, providerOrigins[target]);
     if (target.startsWith('tiktok')) {
       const photos = page.getByRole('tab', { name: 'Photos', exact: true });
+      await photos.waitFor({ state: 'visible', timeout: 30_000 });
       if (await photos.count() === 1) await photos.click();
       if (await photos.count() !== 1 || await photos.getAttribute('aria-selected') !== 'true') throw new BrowserStop('desktop_photos_unavailable', target);
     }

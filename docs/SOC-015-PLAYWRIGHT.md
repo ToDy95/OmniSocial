@@ -10,8 +10,9 @@ n8n talks only to the authenticated loopback worker; that local HTTP transport i
 not a social publishing API.
 
 The browser execution engine, durable jobs and two manual n8n workflows are
-implemented. Dedicated-profile logins, observed provider selectors, the portfolio
-TOD-127 release and an exactly approved live pilot are still required. Do not
+implemented. Portfolio and both TikTok dedicated-profile logins are confirmed.
+Remaining provider controls, the portfolio TOD-127 release and an exactly approved
+live pilot are still required. Do not
 interpret passing synthetic tests or imported workflows as successful public
 posting. The previous assisted adapters remain available independently.
 
@@ -80,6 +81,7 @@ an existing item in the frozen manifest.
 | Route | Behavior |
 | --- | --- |
 | POST /v1/browser/login | Open the fixed portfolio/account sign-in page |
+| POST /v1/browser/inspect | Read a selected account's fixed identity/composer page; local protected report only |
 | POST /v1/browser/plan | Read UI and save a protected finite review package |
 | POST /v1/browser/publish | Bind exact explicit approval and run the finite lot |
 | GET /v1/browser/jobs/:id | Read the durable job result |
@@ -117,18 +119,27 @@ An already in-flight click can remain uncertain and requires reconciliation.
 
 ## Validation recorded
 
-41 local Node tests passed, including sixteen new runner/HTTP/job/image/UI/workflow fixtures.
+42 local Node tests passed, including seventeen new runner/HTTP/job/image/UI/workflow fixtures.
 Strict TypeScript checking passed. Fixtures cover a complete sequential six-account
 lot, dry-plan mutation absence, uncertain submit, sync-only retry, stop during
 composer, configuration drift, operation replay, interrupted jobs and protected
-HTTP schemas. Six tests launch real Playwright against intercepted fixture HTML:
+HTTP schemas. Seven tests launch real Playwright against intercepted fixture HTML:
 noncontiguous source progress, missing source contract, and upload/copy/first-ten
 music selection with a final click guard, and visible preparation/receipt writeback
 with idempotent readback, and Reddit destination/post-type checks immediately
 before submission, and a manual Google popup returning to TikTok with the OAuth
-allowance revoked before automated work. They make no external network requests.
+allowance revoked before automated work, and fixed profile inspection excluding
+credential field values and URL queries from its protected control inventory.
+They make no external network requests.
 Provider identities and receipts in all these tests are synthetic.
 
 Both manual workflows were imported inactive into the local n8n instance. A
-dedicated portfolio browser opened and reached owner sign-in. No provider file
+dedicated portfolio browser authenticated. Both TikTok profiles were independently
+confirmed by their own Studio profile links, `@todicarazvan95` and `@code.on.roids`,
+after a graceful worker restart. TikTok composer inspection and execution wait for
+the observed Photos tab before reading controls. Inspection accepts only a fixed
+selected target and identity/composer view, never arbitrary URLs or scripts.
+The actual Photos tab, file input and Select photos button were observed on both
+TikTok accounts. Post-upload fields and music controls still need calibration.
+No provider file
 upload, Post click, cloud Prepare or result write has been performed.

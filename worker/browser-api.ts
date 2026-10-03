@@ -34,6 +34,17 @@ export class BrowserAPI {
       exact(input, ['jobId']); const jobId = id(input.jobId);
       return this.jobs.start(jobId, operation, input, () => this.runner.plan());
     }
+    if (operation === 'inspect') {
+      exact(input, ['jobId', 'target', 'view']); const jobId = id(input.jobId);
+      if (!targets.includes(input.target as Target) || !['identity', 'composer'].includes(input.view as string)
+        || jobId.length > 72) throw new BrowserStop('inspection_input_invalid');
+      const target = input.target as Target, view = input.view as 'identity' | 'composer';
+      return this.jobs.start(jobId, operation, input, async () => {
+        const config = readBrowserConfig();
+        if (!config.selected.includes(target)) throw new BrowserStop('target_out_of_scope');
+        return this.sessions.inspect(target, view, config.accounts[target]!, jobId);
+      });
+    }
     if (operation === 'login') {
       exact(input, ['jobId', 'target']); const jobId = id(input.jobId);
       if (input.target !== 'portfolio' && !targets.includes(input.target as Target)) throw new BrowserStop('target_invalid');

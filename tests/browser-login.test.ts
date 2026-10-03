@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { randomUUID } from 'node:crypto';
+import { readFileSync, rmSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { root } from '../worker/local.ts';
 import { allowedProfileNavigation, assertSession, BrowserSessions, guardProfileNavigation } from '../worker/browser-session.ts';
 
 test('Google OAuth allowance is exact, manual-only and never accepts another host or embedded credentials', () => {
@@ -12,6 +16,34 @@ test('Google OAuth allowance is exact, manual-only and never accepts another hos
     assert.equal(allowedProfileNavigation(url, origin, true), false);
   }
   assert.equal(allowedProfileNavigation(`${origin}/login`, origin, false), true);
+});
+
+test('fixed profile inspection reads selected UI without writes and excludes credential field values', async () => {
+  const browser = await chromium.launch({ headless: true });
+  const jobId = `fixture-${randomUUID()}`;
+  const directory = join(root, 'runtime/reports', `inspect-${jobId}`);
+  try {
+    const context = await browser.newContext(); await context.newPage();
+    await context.route('**/*', async route => {
+      assert.equal(route.request().method(), 'GET');
+      assert.equal(new URL(route.request().url()).origin, 'https://www.tiktok.com');
+      await route.fulfill({ contentType: 'text/html', body: `<a href="/@fixture?token=never-export">fixture</a>
+        <input name="email" value="never-export"><input type="password" value="private-fixture">
+        <button data-e2e="upload">Upload</button>` });
+    });
+    const sessions = new BrowserSessions(); (sessions as any).contexts.set('tiktok_personal', context);
+    const account = { handle: '@fixture', identityUrl: 'https://www.tiktok.com/tiktokstudio',
+      destination: '@fixture', visibility: 'public', musicPolicy: 'none' } as const;
+    const result = await sessions.inspect('tiktok_personal', 'identity', account, jobId);
+    assert.equal(result.status, 'inspection_ready');
+    const text = readFileSync(result.report, 'utf8');
+    assert.equal(text.includes('never-export'), false); assert.equal(text.includes('private-fixture'), false);
+    assert.equal(text.includes('"href": "/@fixture"'), true);
+    assert.equal(statSync(result.report).mode & 0o077, 0);
+    assert.equal(statSync(directory).mode & 0o077, 0);
+    await assert.rejects(sessions.inspect('tiktok_personal', 'identity', account, '../unsafe'), /inspection_input_invalid/);
+    await sessions.close();
+  } finally { await browser.close(); rmSync(directory, { recursive: true, force: true }); }
 });
 
 test('Playwright preserves manual Google popup, returns to TikTok and ends OAuth allowance before automation', async () => {
