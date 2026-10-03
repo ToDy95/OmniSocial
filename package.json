@@ -11,6 +11,7 @@
     "start:worker": "node worker/server.ts",
     "start:n8n": "node scripts/start-n8n.ts",
     "import:health": "node scripts/import-health.ts",
+    "import:plan": "node scripts/import-plan.ts",
     "test": "node --test tests/*.test.ts"
   },
   "dependencies": {

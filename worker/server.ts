@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { root, secret } from './local.ts';
 import { openJournal } from './journal.ts';
+import { fixturePlan } from './fixture.ts';
 
 export function createWorker(token: string, journalReady: () => boolean) {
   return createServer((req, res) => {
@@ -19,9 +20,10 @@ export function createWorker(token: string, journalReady: () => boolean) {
     if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
       return reply(401, { error: 'unauthorized' });
     }
-    if (req.url !== '/v1/health' || req.method !== 'GET') return reply(404, { error: 'operation_unavailable' });
+    if (req.method !== 'GET' || !['/v1/health', '/v1/plan-fixture'].includes(req.url ?? '')) return reply(404, { error: 'operation_unavailable' });
     try {
       if (!journalReady()) throw new Error('Journal unavailable');
+      if (req.url === '/v1/plan-fixture') return reply(200, fixturePlan());
       reply(200, { status: 'ok', mode: 'dry_run', publishingEnabled: false, sourceConnected: false, schemaVersion: 1 });
     } catch {
       reply(503, { error: 'journal_unavailable' });
