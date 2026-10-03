@@ -34,7 +34,9 @@ write/readback adapters still require their own portfolio contract and acceptanc
 
 `npm run plan:source` reads only protected fixed files:
 `runtime/source/snapshot.json` and `runtime/source/choices.json`. Export support is
-implemented in portfolio TOD-126 / PR #132, with no deployed/live acceptance yet.
+implemented in portfolio TOD-126 / PR #132. SOC-012 subsequently downloaded the
+complete export through the authenticated local owner workspace; hosted
+deployment, source writes and real publication acceptance remain unverified.
 The local importer requires the expected owner, complete export, recent timestamp
 (15 minutes), matching public handles, selected accounts and bounded cap. It maps
 full processed slugs and pending preparations to stable article IDs. Destination,

@@ -42,7 +42,13 @@ validate inputs and return handoff instructions; they do not submit posts.
   verified public. A synthetic screenshot is stored only in ignored local reports.
 - Portfolio TOD-126 draft PR 132 contains an owner-only read-only source export.
   Its local suite/type/build/auth checks are recorded in that repository. The
-  source has not yet been read through the owner's authenticated live session.
+  source was subsequently downloaded through the authenticated local owner
+  workspace. The complete export contained 45 articles, with no pagination
+  remainder. It remains ignored and owner-only; no source result was changed.
+  Snapshot observation found TikTok Personal fully processed, TikTok Business
+  and Reddit each with an existing pending preparation, and eligible archive
+  content on other accounts. Cloud processed status is not independent proof of
+  matching public publications. Existing pending preparations must be reconciled.
 - Existing dependency audit findings remain: npm reported 157 findings in the
   installed dependency tree, and 15 optional install scripts remain blocked.
   This audit is not a claim of security certification or production acceptance.
@@ -103,7 +109,8 @@ service records. All logs, profiles, journal, exports and reports stay ignored l
 
 ## Remaining acceptance gates
 
-Authenticated source read, fresh account identities, devices/destinations/music,
+Authenticated local source read is verified. Fresh account identities,
+devices/destinations/music,
 guarded real handoff orchestration, receipt-bound portfolio integration, separately
 approved real pilot, owner runbook acceptance, PR review and any authorized merge
 or deployment remain open. The full V1 is not complete or enabled. SOC-013 is the
