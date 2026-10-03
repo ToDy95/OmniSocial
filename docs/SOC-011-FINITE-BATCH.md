@@ -51,3 +51,10 @@ Real source login, platform identity/device/board/subreddit checks, an approved
 small mixed pilot, real receipt verification and portfolio writeback are still
 open. No real source export, provider API, native submission, cloud Prepare/result,
 merge or deployment was exercised by this milestone.
+
+SOC-012 follow-up: the editor also requires published child versions. The six
+fixed synthetic children were published through the owner UI under the normal
+publication service for manual editor use. The parent stays unpublished/manual.
+Manual editor execution returned `batch_fixture_completed`, 12 validated and
+zero submitted/public after this setup. Unpublish those children in the UI before the isolated CLI procedure above, which
+deliberately refuses already-published workflows. See [readiness](V1-READINESS.md).

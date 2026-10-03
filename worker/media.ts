@@ -10,7 +10,7 @@ export async function validateImage(bytes: Buffer) {
   try {
     const image = sharp(bytes, { failOn: 'warning', limitInputPixels: 40_000_000 });
     const meta = await image.metadata();
-    if (!['png', 'jpeg', 'webp'].includes(meta.format ?? '') || !meta.width || !meta.height
+    if ((meta.format !== 'png' && meta.format !== 'jpeg' && meta.format !== 'webp') || !meta.width || !meta.height
       || meta.width > 10_000 || meta.height > 10_000 || (meta.pages ?? 1) > 1) throw new Error();
     // Decode every pixel before accepting bytes; metadata alone is not enough.
     await image.raw().toBuffer();

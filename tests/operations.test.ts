@@ -48,6 +48,16 @@ test('unknown submission survives restart, approval is invalidated and no retry 
     assert.throws(() => restarted.release(run.id), /unresolved/);
   } finally { s.clean(); }
 });
+test('expiry blocks starts and prepared submissions without recording a submission', () => {
+  const s = setup();
+  try {
+    assert.throws(() => s.ops.openRun('late', s.manifest.manifestId, '2026-01-10T02:00:00.000Z'), /approval/);
+    const run = s.ops.openRun('fixture-run', s.manifest.manifestId, now);
+    s.ops.prepare(run.id, s.item.itemId, run.fence, now);
+    assert.throws(() => s.ops.submitting(run.id, s.item.itemId, run.fence, '2026-01-10T02:00:00.000Z', s.item), /approval/);
+    assert.equal(s.ops.attempt(run.id, s.item.itemId).state, 'ready_to_submit');
+  } finally { s.clean(); }
+});
 test('receipt precedes sync, failed/readback-lost sync cannot submit, repeated receipts reconcile only', () => {
   const s = setup();
   try {
