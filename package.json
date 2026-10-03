@@ -18,6 +18,8 @@
     "import:health": "node scripts/import-health.ts",
     "import:plan": "node scripts/import-plan.ts",
     "import:recovery": "node scripts/import-workflows.ts",
+    "import:batch": "node scripts/import-workflows.ts batch",
+    "execute:fixture": "node scripts/execute-fixture.ts",
     "plan:source": "node scripts/plan-source.ts",
     "approve:manifest": "node scripts/approve-manifest.ts",
     "test": "node --test tests/*.test.ts"

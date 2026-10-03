@@ -2,10 +2,10 @@ import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import { root, secret } from './local.ts';
 
-export function runN8n(args: string[]) {
+export function runN8n(args: string[], cliFixtureCompatibility = false, captureFixtureOutput = false) {
 process.umask(0o077);
 const child = spawn(process.execPath, [join(root, 'node_modules/n8n/bin/n8n'), ...args], {
-  stdio: 'inherit',
+  stdio: captureFixtureOutput ? ['inherit', 'pipe', 'inherit'] : 'inherit',
   env: {
     PATH: process.env.PATH,
     HOME: process.env.HOME,
@@ -23,6 +23,7 @@ const child = spawn(process.execPath, [join(root, 'node_modules/n8n/bin/n8n'), .
     N8N_VERSION_NOTIFICATIONS_ENABLED: 'false',
     N8N_TEMPLATES_ENABLED: 'false',
     N8N_PUBLIC_API_DISABLED: 'true',
+    ...(cliFixtureCompatibility ? { N8N_USE_WORKFLOW_PUBLICATION_SERVICE: 'false' } : {}),
     N8N_BLOCK_ENV_ACCESS_IN_NODE: 'true',
     N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES: 'true',
     N8N_COMMUNITY_PACKAGES_ENABLED: 'false',
