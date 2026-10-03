@@ -1,0 +1,66 @@
+{
+  "id": "omnisocialHealth",
+  "name": "SOC-003 · Manual local health",
+  "active": false,
+  "nodes": [
+    {
+      "id": "manual-start", "name": "Manual start", "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1, "position": [0, 0], "parameters": {}
+    },
+    {
+      "id": "worker-health", "name": "Worker health", "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2, "position": [240, 0],
+      "parameters": {
+        "url": "http://127.0.0.1:8787/v1/health",
+        "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+        "options": { "timeout": 5000, "response": { "response": { "neverError": true } } }
+      },
+      "credentials": { "httpHeaderAuth": { "id": "omnisocialWorker", "name": "OmniSocial local worker" } },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "check-health", "name": "Ready for dry run?", "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2, "position": [480, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{
+            "id": "safe-health", "leftValue": "={{ $json.status === 'ok' && $json.mode === 'dry_run' && $json.publishingEnabled === false && $json.sourceConnected === false && $json.schemaVersion === 1 }}",
+            "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+          }],
+          "combinator": "and"
+        }, "options": {}
+      }
+    },
+    {
+      "id": "health-ready", "name": "Local health ready", "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4, "position": [720, -100],
+      "parameters": { "assignments": { "assignments": [
+        { "id": "ready-result", "name": "result", "value": "health_ready", "type": "string" },
+        { "id": "ready-mode", "name": "mode", "value": "dry_run", "type": "string" },
+        { "id": "ready-publish", "name": "publishingEnabled", "value": false, "type": "boolean" }
+      ] }, "options": {} }
+    },
+    {
+      "id": "health-blocked", "name": "Local health blocked", "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4, "position": [720, 100],
+      "parameters": { "assignments": { "assignments": [
+        { "id": "blocked-result", "name": "result", "value": "health_blocked", "type": "string" },
+        { "id": "blocked-mode", "name": "mode", "value": "dry_run", "type": "string" },
+        { "id": "blocked-publish", "name": "publishingEnabled", "value": false, "type": "boolean" },
+        { "id": "blocked-action", "name": "action", "value": "Inspect the local worker before continuing. Do not prepare or publish.", "type": "string" }
+      ] }, "options": {} }
+    }
+  ],
+  "connections": {
+    "Manual start": { "main": [[{ "node": "Worker health", "type": "main", "index": 0 }]] },
+    "Worker health": { "main": [[{ "node": "Ready for dry run?", "type": "main", "index": 0 }]] },
+    "Ready for dry run?": { "main": [
+      [{ "node": "Local health ready", "type": "main", "index": 0 }],
+      [{ "node": "Local health blocked", "type": "main", "index": 0 }]
+    ] }
+  },
+  "settings": { "executionOrder": "v1", "saveExecutionProgress": false, "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none", "saveDataErrorExecution": "none", "executionTimeout": 30 },
+  "pinData": {}, "tags": []
+}

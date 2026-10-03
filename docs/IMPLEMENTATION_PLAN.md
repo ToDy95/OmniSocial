@@ -2,7 +2,9 @@
 
 Date: 2026-10-03. Timezone for operator-facing dates: Europe/Bucharest.
 
-Status: SOC-001 planning review pending; SOC-002 feasibility evidence collected.
+Status: SOC-001 planning review pending; SOC-002 feasibility evidence collected;
+SOC-003 local dry-run foundation and manual health integration running; draft
+review and social account/session checks pending.
 The initial repository commit establishes main. Live account/device gates remain
 open. Local runtime setup can proceed with fixtures; publication stays disabled.
 
@@ -95,7 +97,8 @@ Proposed runtime: local/self-hosted n8n plus a small TypeScript/Playwright worke
 Use HTTP Request nodes to call fixed worker operations on a private authenticated
 connection. Do not rely on arbitrary shell execution inside n8n Code nodes.
 Choose and pin supported Node, n8n, Playwright, and browser versions in SOC-003.
-No dependencies are installed by SOC-001.
+No dependencies are installed by SOC-001. SOC-003 uses the pinned npm distribution
+and Node built-in SQLite; see [local runtime](LOCAL-RUNTIME.md) for actual scope.
 
 The worker owns browser pages, uploads, account checks, local media, and receipts.
 n8n owns manual entry points, sequencing, routing, waits, and reporting. A native
@@ -479,7 +482,7 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | --- | --- | --- | --- |
 | SOC-001 | Initial repository, English implementation plan, agent/commit/PR conventions | Initial commit, reviewed documentation checks, pushed feature branch and draft PR; runtime explicitly unimplemented | Documentation authored; PR review pending |
 | SOC-002 | Source/transport feasibility, all account mappings, current terms and approvals | Six-target matrix with supported/assisted/blocked decisions; verified device/media path; current source discovery/ledger contract; required portfolio PRs identified | Evidence documented; account/device acceptance pending. See [feasibility report](SOC-002-FEASIBILITY.md) |
-| SOC-003 | Local n8n + worker skeleton, sessions and protected persistence; after SOC-002 | Pinned versions, health operation, protected dedicated profiles, manual login, journal durability, private network, sanitized config; no real submission | Planned |
+| SOC-003 | Local n8n + worker skeleton, sessions and protected persistence; after SOC-002 | Pinned versions, health operation, protected dedicated profiles, manual login, journal durability, private network, sanitized config; no real submission | Installed and running; owner setup complete; inactive manual n8n-to-worker health workflow imported and verified for ready/blocked results. Synthetic persistence/security and blank Chromium checks passed. Social profile login/identity acceptance pending. See [local runtime](LOCAL-RUNTIME.md) |
 | SOC-004 | Read-only discovery, immutable manifests, approvals and WF-01 | Exact per-account oldest-first finite jobs, approved content/media fingerprints, existing progress respected; dry-run fixture proves zero mutations | Planned |
 | SOC-005 | Durable operations, lease/stop semantics, common preparation, receipt/sync and WF-04/09/10/11/12 | Crash/retry/concurrency and sync-only recovery fixtures; matching source readback; no unsupported Next.js internal calls | Planned |
 | SOC-006 | TikTok Personal adapter and WF-05 pilot; after SOC-002 through SOC-005 | One separately owner-authorized photo/title/caption/sound pilot via permitted transport, matching account and receipt; native gaps remain explicit | Planned, transport gate |

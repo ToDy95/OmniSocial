@@ -4,8 +4,8 @@ Manually started orchestration for distributing approved portfolio blog posts to
 the owner's configured social accounts, with verified publication receipts and
 recoverable execution records.
 
-This repository starts with planning and delivery conventions. Product code,
-n8n workflows, account connections, and social publishing are not implemented.
+The feasibility report and local dry-run foundation are under draft review.
+Account connections and social publishing remain disabled.
 
 Initial milestone: SOC-001.
 
@@ -16,6 +16,8 @@ Initial milestone: SOC-001.
 - [Agent rules](AGENTS.md): scope, evidence, credentials, milestone numbering,
   commit, push, and pull request conventions.
 - [Publishing workflow](.codex/skills/publish/SKILL.md): the delivery procedure.
+- [Feasibility report](docs/SOC-002-FEASIBILITY.md): source contract and six-account gates.
+- [Local runtime](docs/LOCAL-RUNTIME.md): pinned setup, protection and manual startup.
 
 V1 covers TikTok Personal, TikTok Business, X, Reddit, Pinterest Business, and
 Pinterest Personal. Each destination has its own feasibility gate and verified
