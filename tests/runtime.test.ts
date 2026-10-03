@@ -48,7 +48,18 @@ test('worker refuses missing auth, browser origin, foreign host and side-effect 
     const result = await fetch(`${url}/v1/health`, { headers });
     assert.equal(result.status, 200);
     assert.equal((await result.json()).publishingEnabled, false);
+    const fixture = await fetch(`${url}/v1/plan-fixture`, { headers });
+    const manifest = await fixture.json();
+    assert.equal(fixture.status, 200);
+    assert.equal(manifest.itemCount, 12);
+    assert.equal(manifest.synthetic, true);
+    assert.equal(manifest.sourceConnected, false);
+    assert.deepEqual(await (await fetch(`${url}/v1/plan-fixture`, { headers })).json(), manifest);
+    assert.equal((await fetch(`${url}/v1/plan-fixture?mode=publish`, { headers })).status, 404);
+    assert.equal((await fetch(`${url}/v1/plan-fixture`, { method: 'POST', headers })).status, 404);
+    assert.equal((await fetch(`${url}/v1/plan-fixture`)).status, 401);
     ready = false;
     assert.equal((await fetch(`${url}/v1/health`, { headers })).status, 503);
+    assert.equal((await fetch(`${url}/v1/plan-fixture`, { headers })).status, 503);
   } finally { await new Promise<void>(resolve => server.close(() => resolve())); }
 });
