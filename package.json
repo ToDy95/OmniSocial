@@ -22,11 +22,16 @@
     "execute:fixture": "node scripts/execute-fixture.ts",
     "plan:source": "node scripts/plan-source.ts",
     "approve:manifest": "node scripts/approve-manifest.ts",
-    "test": "node --test tests/*.test.ts"
+    "test": "node --test tests/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "n8n": "2.41.6",
     "playwright": "1.63.0",
     "sharp": "0.35.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "7.0.2"
   }
 }
