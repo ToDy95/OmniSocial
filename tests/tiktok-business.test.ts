@@ -15,4 +15,8 @@ test('Business uses distinct identity and commercially reviewed sound with exact
   assert.equal(tiktokBusiness(item, { ...business, accountTypeVerified: false }).reason, 'business_account_type_required');
   const changed = structuredClone(item); changed.payload.disclosures!.aiGenerated = false;
   assert.equal(tiktokBusiness(changed, business).reason, 'payload_changed');
+  const desktop = { ...business, device: 'mac' as const, desktopPhotoUploadVerified: true };
+  assert.equal(tiktokBusiness(item, desktop).status, 'dry_run_validated');
+  assert.equal(tiktokBusiness(item, { ...desktop, accountId: 'fixture-personal' }).status, 'blocked');
+  assert.equal(tiktokBusiness(item, { ...desktop, mode: 'publish' }).status, 'awaiting_owner');
 });

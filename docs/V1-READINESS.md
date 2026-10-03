@@ -10,8 +10,8 @@ publisher. See [the implementation plan](IMPLEMENTATION_PLAN.md),
 
 | Account | Implemented transport | Owner setup still needed | Live acceptance |
 | --- | --- | --- | --- |
-| TikTok Personal | Validated assisted native photo package | Fresh identity, phone device, exact sound/privacy/disclosures | Not run |
-| TikTok Business | Separate assisted native photo package | Fresh Business identity, phone, commercial sound/disclosures | Not run |
+| TikTok Personal | Assisted desktop or native photo package | Fresh identity and device capability, exact sound/privacy/disclosures | Not run |
+| TikTok Business | Separate assisted desktop or native photo package | Fresh Business identity, device capability, commercial sound/disclosures | Desktop Photos tab observed; submission not run |
 | Reddit | Assisted owner composer | Fresh identity, allowed community, rules/type/flair | Not run |
 | X | Assisted owner composer, conservative copy bound | Fresh identity and image/copy approval | Not run |
 | Pinterest Personal | Assisted owner Pin builder | Fresh identity and exact writable public board | Not run |
@@ -116,5 +116,6 @@ approved real pilot and owner runbook acceptance remain open. SOC-001 through
 SOC-012 and portfolio TOD-126 are squash-merged; see [delivery evidence](DELIVERY-AUDIT.md).
 The portfolio merge commit has a successful Vercel status, but authenticated
 production endpoint readback is not verified. The full V1 is not complete or
-enabled. SOC-014 is the next allocation candidate after the SOC-013 delivery audit,
-subject to a fresh audit. V2 remains deferred.
+enabled. [SOC-014](SOC-014-DESKTOP-PROGRESS.md) adds desktop capability gating and
+source progress reporting after a fresh Git audit. SOC-015 is the next candidate,
+subject to fresh refs and scope authorization. V2 remains deferred.

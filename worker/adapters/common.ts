@@ -7,6 +7,7 @@ export type Item = { itemId: string; target: string; accountId: string; payloadD
 export type Context = { mode: 'dry_run' | 'publish'; now: string; observedAt: string;
   accountId: string; identityVerified: boolean; loginStatus: 'valid' | 'expired' | 'challenge';
   mediaDigest: string | null; mediaFormat: string | null; device: 'iphone' | 'android' | 'mac';
+  desktopPhotoUploadVerified?: boolean;
   transport: 'assisted' | 'api'; rulesReviewed?: boolean; boardId?: string; boardWritable?: boolean;
   boardPublic?: boolean; flair?: string; postType?: 'image' | 'text'; weightedLength?: number; soundRightsVerified?: boolean; mediaBytes?: number };
 export type Decision = { status: 'blocked' | 'dry_run_validated' | 'awaiting_owner'; reason?: string;

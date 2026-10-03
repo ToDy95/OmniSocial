@@ -54,8 +54,10 @@ SOC-014 is the next Git candidate after this audit, subject to fresh ref checks.
 
 ## Next owner inputs
 
-Confirm the phone device for TikTok, the intended Reddit community, the exact
-Personal and Business Pinterest boards, and the actual outcomes of the existing
-TikTok Business and Reddit pending preparations. Then verify current platform
-identities, configure reviewed choices and continue the guarded handoff/writeback
+Subsequent owner clarification selected laptop execution and supplied both
+Pinterest board URLs. Personal is caught up and Business has ten remaining in
+the supplied screenshots. The owner reported no actual pending submissions;
+portfolio preparation checkpoints still need scoped reconciliation. See
+[SOC-014](SOC-014-DESKTOP-PROGRESS.md) for the corrected device/progress scope.
+Verify current platform identities and continue the guarded handoff/writeback
 integration. An exact approved pilot remains separate from Git merge permission.
