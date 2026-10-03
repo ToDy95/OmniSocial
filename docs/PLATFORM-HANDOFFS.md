@@ -27,3 +27,11 @@ digest, including when loaded through the source adapter. Personal identities an
 histories cannot satisfy Business acceptance. No random trending music is chosen.
 Source: [TikTok Commercial Music Library](https://ads.tiktok.com/resources/help/article/commercial-music-library).
 Business native pilot and actual commercial sound/disclosure acceptance remain open.
+
+SOC-008 adds Reddit assisted validation for one owner-selected subreddit, reviewed
+community rules, exact post type/flair, title/caption and image acceptance. Those
+choices bind the manifest fingerprint. API use stays disabled pending accepted
+access; community moderation is not a public receipt. There is no scraping,
+comment/reply/DM generation or scripted posting. Actual rules, identity and receipt
+acceptance need an owner-assisted pilot.
+Source: [Reddit Responsible Builder Policy](https://support.reddithelp.com/hc/en-us/articles/42728983564564-Responsible-Builder-Policy).
