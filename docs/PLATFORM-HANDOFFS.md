@@ -35,3 +35,11 @@ access; community moderation is not a public receipt. There is no scraping,
 comment/reply/DM generation or scripted posting. Actual rules, identity and receipt
 acceptance need an owner-assisted pilot.
 Source: [Reddit Responsible Builder Policy](https://support.reddithelp.com/hc/en-us/articles/42728983564564-Responsible-Builder-Policy).
+
+SOC-009 adds the owner-operated X composer handoff. No website scripting or API
+submission is implemented. Compact captions use a conservative 280 weighted bound
+(ASCII one, other code points two), with no link-shortening assumption. This can
+block copy that the native composer would accept; revise/reapprove explicitly.
+Optional PNG/JPEG images require matched digest and a conservative 5 MiB ceiling.
+Actual identity, native counter/media acceptance, entitlement and public status
+receipt remain open. Source: [X automation rules](https://help.x.com/en/rules-and-policies/x-automation).
