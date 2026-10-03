@@ -2,12 +2,12 @@
 
 Date: 2026-10-03. Timezone for operator-facing dates: Europe/Bucharest.
 
-Status: SOC-001 planning review pending; SOC-002 feasibility evidence collected;
-SOC-003 local dry-run foundation and manual health integration running; draft
-review and social account/session checks pending. SOC-004 fixture manifests and
-manual planning flow implemented; live discovery and durable approvals pending.
-The initial repository commit establishes main. Live account/device gates remain
-open. Local runtime setup can proceed with fixtures; publication stays disabled.
+Status: SOC-001 through SOC-012 are squash-merged into main after explicit owner
+authorization. Local fixture runtime, finite batch, recovery and type checks pass;
+the authenticated local portfolio export is verified. SOC-013 records delivery
+evidence in [the merge audit](DELIVERY-AUDIT.md). Real account/device/destination
+checks, guarded live orchestration, receipt-bound portfolio writeback and an
+exactly approved pilot remain open. Real publication stays disabled; V2 is deferred.
 
 ## 1. Goal and scope
 
@@ -475,7 +475,7 @@ scope. Sessions can be revoked locally; metadata never stores passwords.
 
 ## 11. Milestones and delivery order
 
-SOC-001 through SOC-012 are allocated after Git audits. Later IDs are proposed
+SOC-001 through SOC-013 are allocated after Git audits. Later IDs are proposed
 roadmap reservations; audit all refs before allocating each new task. Split an
 oversized milestone if needed and update the roadmap rather than reuse IDs.
 
@@ -493,6 +493,7 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | SOC-010 | Pinterest Personal and Business adapter and WF-08 | Separate eligible account/board mappings, image/link/description verification, independent owner-authorized receipts | Assisted two-account board/copy/link validator implemented with fixtures; API disabled. Actual board/identity and owner-approved Pin receipts pending. |
 | SOC-011 | Account/post loops, WF-02/03, full finite batch and reports | Imported exports round-trip, sequential target order, cap/expiry enforcement, no schedules, replay-safe full fixture batch and authorized small mixed pilot | Fixture implementation validated: 22 tests passed and n8n CLI completed all 12 synthetic items with zero submissions. Seven imports matched; children unpublished after rehearsal. [Evidence](SOC-011-FINITE-BATCH.md). Real mixed pilot gated. |
 | SOC-012 | V1 readiness audit, runbook, recovery rehearsal and report review | Failure/security/replay cases pass, documentation matches actual capabilities, unsupported targets clearly assisted/blocked, owner accepts operating procedure | Local audit/runbook and strict worker/script type checking implemented; 23 fixtures passed. [Readiness matrix](V1-READINESS.md) records live source, real guarded orchestration/writeback, pilot and owner acceptance gates. Full V1 not ready. |
+| SOC-013 | Delivery reconciliation after owner-authorized merges | One squash commit per feature milestone, resulting main trees match reviewed branches, current documentation separates merges from live acceptance | [Delivery audit](DELIVERY-AUDIT.md) records merged SOC-001 through SOC-012 and portfolio TOD-126, passing checks, preserved local work and remaining owner inputs. Documentation only. |
 
 During implementation, maintain a capability matrix per account: transport,
 source/device checks, fixture validation, real-pilot evidence, and enablement
