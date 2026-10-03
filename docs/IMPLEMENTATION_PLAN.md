@@ -2,9 +2,9 @@
 
 Date: 2026-10-03. Timezone for operator-facing dates: Europe/Bucharest.
 
-Status: planning baseline authored under SOC-001; feature-PR review pending.
-The initial repository commit establishes main. All runtime milestones below are
-planned, not implemented, connected, installed, tested, or activated.
+Status: SOC-001 planning review pending; SOC-002 feasibility evidence collected.
+The initial repository commit establishes main. Live account/device gates remain
+open. Local runtime setup can proceed with fixtures; publication stays disabled.
 
 ## 1. Goal and scope
 
@@ -478,7 +478,7 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | ID | Scope and dependency | Acceptance / exit evidence | Status |
 | --- | --- | --- | --- |
 | SOC-001 | Initial repository, English implementation plan, agent/commit/PR conventions | Initial commit, reviewed documentation checks, pushed feature branch and draft PR; runtime explicitly unimplemented | Documentation authored; PR review pending |
-| SOC-002 | Source/transport feasibility, all account mappings, current terms and approvals | Six-target matrix with supported/assisted/blocked decisions; verified device/media path; current source discovery/ledger contract; required portfolio PRs identified | Planned |
+| SOC-002 | Source/transport feasibility, all account mappings, current terms and approvals | Six-target matrix with supported/assisted/blocked decisions; verified device/media path; current source discovery/ledger contract; required portfolio PRs identified | Evidence documented; account/device acceptance pending. See [feasibility report](SOC-002-FEASIBILITY.md) |
 | SOC-003 | Local n8n + worker skeleton, sessions and protected persistence; after SOC-002 | Pinned versions, health operation, protected dedicated profiles, manual login, journal durability, private network, sanitized config; no real submission | Planned |
 | SOC-004 | Read-only discovery, immutable manifests, approvals and WF-01 | Exact per-account oldest-first finite jobs, approved content/media fingerprints, existing progress respected; dry-run fixture proves zero mutations | Planned |
 | SOC-005 | Durable operations, lease/stop semantics, common preparation, receipt/sync and WF-04/09/10/11/12 | Crash/retry/concurrency and sync-only recovery fixtures; matching source readback; no unsupported Next.js internal calls | Planned |
