@@ -8,7 +8,7 @@ export type Context = { mode: 'dry_run' | 'publish'; now: string; observedAt: st
   accountId: string; identityVerified: boolean; loginStatus: 'valid' | 'expired' | 'challenge';
   mediaDigest: string | null; mediaFormat: string | null; device: 'iphone' | 'android' | 'mac';
   transport: 'assisted' | 'api'; rulesReviewed?: boolean; boardId?: string; boardWritable?: boolean;
-  boardPublic?: boolean; flair?: string; postType?: 'image' | 'text'; weightedLength?: number; soundRightsVerified?: boolean };
+  boardPublic?: boolean; flair?: string; postType?: 'image' | 'text'; weightedLength?: number; soundRightsVerified?: boolean; mediaBytes?: number };
 export type Decision = { status: 'blocked' | 'dry_run_validated' | 'awaiting_owner'; reason?: string;
   automatedSubmission: false; target: string; itemId: string; handoff?: { destination: string; steps: string[]; package: Item } };
 export function blocked(item: Item, reason: string): Decision {
