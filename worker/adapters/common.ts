@@ -7,13 +7,14 @@ export type Context = { mode: 'dry_run' | 'publish'; now: string; observedAt: st
   accountId: string; identityVerified: boolean; loginStatus: 'valid' | 'expired' | 'challenge';
   mediaDigest: string | null; mediaFormat: string | null; device: 'iphone' | 'android' | 'mac';
   transport: 'assisted' | 'api'; rulesReviewed?: boolean; boardId?: string; boardWritable?: boolean;
-  boardPublic?: boolean; flair?: string; postType?: 'image' | 'text'; weightedLength?: number };
+  boardPublic?: boolean; flair?: string; postType?: 'image' | 'text'; weightedLength?: number; soundRightsVerified?: boolean };
 export type Decision = { status: 'blocked' | 'dry_run_validated' | 'awaiting_owner'; reason?: string;
   automatedSubmission: false; target: string; itemId: string; handoff?: { destination: string; steps: string[]; package: Item } };
 export function blocked(item: Item, reason: string): Decision {
   return { status: 'blocked', reason, automatedSubmission: false, target: item.target, itemId: item.itemId };
 }
 export function commonGate(item: Item, context: Context): string | null {
+  if (!['dry_run', 'publish'].includes(context.mode)) return 'invalid_mode';
   if (context.transport !== 'assisted') return 'api_transport_not_enabled';
   if (context.loginStatus !== 'valid') return 'interactive_login_required';
   const age = Date.parse(context.now) - Date.parse(context.observedAt);

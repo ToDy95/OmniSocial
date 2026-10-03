@@ -19,3 +19,11 @@ Sources reviewed 2026-10-03: [TikTok photo contract](https://developers.tiktok.c
 [sharing guidelines](https://developers.tiktok.com/docs/en/content-sharing-guidelines).
 Real native pilot, identity, device, sound, visibility and receipt acceptance remain
 open. No real account was connected or real post submitted by these fixtures.
+
+SOC-007 adds separate Business identity and account-type checks. Sound must be
+none or an exact CML/licensed track plus rights reference, with commercial rights
+verified. Own-brand, paid-partnership and AI disclosure choices bind the payload
+digest, including when loaded through the source adapter. Personal identities and
+histories cannot satisfy Business acceptance. No random trending music is chosen.
+Source: [TikTok Commercial Music Library](https://ads.tiktok.com/resources/help/article/commercial-music-library).
+Business native pilot and actual commercial sound/disclosure acceptance remain open.

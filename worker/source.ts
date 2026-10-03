@@ -11,7 +11,8 @@ export type SourceExport = { schemaVersion: number; source: string; complete: bo
     payloads: Partial<Record<Target, { title: string; caption: string | null; approved: boolean }>> }[] };
 export type Choices = { owner: string; selected: Target[]; cap: number; allowedMediaOrigins: string[];
   accounts: Partial<Record<Target, { accountId: string; handle: string; identityVerified: boolean;
-    destination: string; visibility: 'public' | 'private'; musicPolicy: string }>> };
+    destination: string; visibility: 'public' | 'private'; musicPolicy: string;
+    disclosures?: { ownBrand: boolean; paidPartnership: boolean; aiGenerated: boolean } }>> };
 export function protectedJSON(path: string) {
   const info = lstatSync(path);
   if (!info.isFile() || info.isSymbolicLink() || info.uid !== process.getuid?.() || (info.mode & 0o077) !== 0 || info.size > 20 * 1024 * 1024) throw new Error('source_file_unsafe');
@@ -38,6 +39,7 @@ export async function sourceManifest(source: SourceExport, choices: Choices, now
         const copy = article.payloads[target], account = choices.accounts[target]!;
         return [target, { title: copy?.title ?? '', caption: copy?.caption ?? '', approved: copy?.approved === true,
           destination: account.destination, visibility: account.visibility, musicPolicy: account.musicPolicy,
+          ...(account.disclosures ? { disclosures: account.disclosures } : {}),
           // Preliminary references let the planner limit downloads to selected eligible work.
           media: article.mediaUrl ? { url: article.mediaUrl, sha256: '0'.repeat(64) } : null } satisfies Payload];
       })) })) };
