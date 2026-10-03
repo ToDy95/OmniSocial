@@ -82,9 +82,12 @@ Those belong to SOC-005. Health always returns `publishingEnabled: false` and
 
 The n8n launcher disables public API, community packages, diagnostics, templates,
 environment access in nodes, shell and file nodes, and saved execution payloads.
-It supplies only the required environment to the child process. Credentials and
-workflow access still require local owner setup. Do not import unreviewed nodes
-or workflows. No workflows are imported or active in this milestone.
+It supplies only the required environment to the child process. The same scoped
+launcher is used for CLI operations, so they use this project's data and key.
+Do not invoke the n8n binary directly, even for help: upstream CLI initialization
+can create a default settings folder outside this project.
+Local owner setup is now complete. One inactive manual health workflow is imported;
+no scheduled or publishing workflow is active.
 
 ## Validation
 
@@ -96,7 +99,7 @@ deleted from their temporary directory after each run.
 
 Before accepting SOC-003, verify installed versions, local service readiness,
 loopback listeners, ignored secret/runtime files and local owner setup. Actual
-account login, n8n-to-worker credentials/integration, browser identity checks and
+account login, browser identity checks and
 full submission/replay behavior remain pending. No real pilot is authorized by
 starting these local services.
 
@@ -109,6 +112,39 @@ publication disabled and source disconnected. The n8n health endpoint returned
 HTTP 200 after database migrations. Listener inspection showed loopback-only
 ports 5678, 5679 (n8n task broker) and 8787. The UI displayed the local owner setup
 form. No owner password was entered and no workflow was imported or activated.
+
+### Manual integration receipts on 2026-10-03
+
+The owner completed setup directly in the local browser. The authenticated UI
+displayed the workflow overview. A supported CLI import assigned one protected
+HTTP Header Auth credential and the inactive manual health workflow to that
+local owner. Plaintext import material was created inside an ignored 0700
+temporary directory as a 0600 file and removed in `finally`. Stored credential
+data was checked for encryption without displaying its value.
+
+The imported nodes, connections and settings matched the sanitized Git source.
+The workflow contains Manual Trigger, HTTP Request, IF and two explicit result
+nodes. It has no schedule, webhook, Wait/resume URL, Code node or publishing call.
+Only the fixed local health URL can be called by this workflow; no retries are
+enabled. Manual runs are not publication approval.
+
+UI execution with the worker running returned `health_ready`, `dry_run` and
+`publishingEnabled: false`. A second manual UI execution with the worker stopped
+returned `health_blocked`, `dry_run`, `publishingEnabled: false`, and an instruction
+to inspect the worker. HTTP connection errors are handled through the result
+path, without relying on Error Trigger. The worker was then restarted.
+
+Run `npm run import:health` once after owner setup, with n8n stopped, then restart
+the editor. The importer refuses to overwrite an existing workflow so local owner
+edits are preserved. It reuses an existing local credential instead of exporting
+or overwriting it. Any later credential rotation requires deliberate reconciliation.
+Review and run the diagnostic in the editor; leave it unpublished.
+
+The source is [manual health workflow](../workflows/SOC-003-manual-health.json).
+CLI import, authenticated health and manual UI integration are verified. Social
+profile login and active account identity remain unverified; SOC-003's full
+account/session acceptance is still open. The next safe scope is SOC-004 with
+synthetic discovery snapshots, not a real publication run.
 
 n8n's internal JS runner started; its optional Python runner reported a missing
 virtual environment. No Python or Code-node workflow was tested. Internal runner
