@@ -11,6 +11,18 @@ exactly approved pilot remain open. Real publication stays disabled; V2 is defer
 
 ## 1. Goal and scope
 
+### Owner transport override — 2026-10-03
+
+The owner explicitly selected Playwright UI publishing and removed platform-policy
+approval and API eligibility as project blockers. This direction supersedes the
+policy-based transport gates elsewhere in this plan and earlier feasibility
+documents; those passages remain historical research, not active acceptance
+requirements. Do not redirect this flow to an API integration. Preserve bounded
+owner-approved manifests, dedicated browser profiles, account checks, stops for
+CAPTCHA/MFA/login expiry, and receipt verification before portfolio writeback.
+This documentation change does not enable submission or establish that the live
+browser runner is implemented or validated.
+
 Reduce the owner's daily work distributing already published portfolio articles
 and approved social copy through https://www.razvantodica.com/admin/mobile.
 Preserve the familiar two-tab handoff: the portfolio page selects the destination
@@ -475,7 +487,7 @@ scope. Sessions can be revoked locally; metadata never stores passwords.
 
 ## 11. Milestones and delivery order
 
-SOC-001 through SOC-014 are allocated after Git audits. Later IDs are proposed
+SOC-001 through SOC-015 are allocated after Git audits. Later IDs are proposed
 roadmap reservations; audit all refs before allocating each new task. Split an
 oversized milestone if needed and update the roadmap rather than reuse IDs.
 
@@ -495,6 +507,7 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | SOC-012 | V1 readiness audit, runbook, recovery rehearsal and report review | Failure/security/replay cases pass, documentation matches actual capabilities, unsupported targets clearly assisted/blocked, owner accepts operating procedure | Local audit/runbook and strict worker/script type checking implemented; 23 fixtures passed. [Readiness matrix](V1-READINESS.md) records live source, real guarded orchestration/writeback, pilot and owner acceptance gates. Full V1 not ready. |
 | SOC-013 | Delivery reconciliation after owner-authorized merges | One squash commit per feature milestone, resulting main trees match reviewed branches, current documentation separates merges from live acceptance | [Delivery audit](DELIVERY-AUDIT.md) records merged SOC-001 through SOC-012 and portfolio TOD-126, passing checks, preserved local work and remaining owner inputs. Documentation only. |
 | SOC-014 | Desktop photo handoff and independent account progress | Fresh per-account desktop capability gate, protected source progress report, preparation distinct from public receipts | [Desktop and progress record](SOC-014-DESKTOP-PROGRESS.md) documents observed Business Photos support, owner board locators and remaining integration gates. Assisted handoff only; no real submission. |
+| SOC-015 | Owner-requested Playwright UI execution and manual n8n orchestration | UI source discovery, protected profiles, exact approval, sequential submit/receipt/writeback, restart-safe reconciliation and fixed private operations | [Browser execution](SOC-015-PLAYWRIGHT.md) implemented and validated with 39 local tests, including five Playwright UI fixtures, and strict TypeScript. Two inactive manual n8n workflows imported and read back. Dedicated portfolio window reached sign-in. Provider UI calibration, logins, portfolio TOD-127 release and approved live pilot remain required. |
 
 During implementation, maintain a capability matrix per account: transport,
 source/device checks, fixture validation, real-pilot evidence, and enablement

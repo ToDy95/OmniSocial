@@ -10,6 +10,7 @@ export type SourceExport = { schemaVersion: number; source: string; complete: bo
   articles: { id: string; slug: string; canonicalUrl: string; publishedAt: string; mediaUrl: string | null;
     payloads: Partial<Record<Target, { title: string; caption: string | null; approved: boolean }>> }[] };
 export type Choices = { owner: string; selected: Target[]; cap: number; allowedMediaOrigins: string[];
+  destinations?: Partial<Record<Target, Record<string, { destination: string; postType?: 'image' | 'text'; flair?: string | null }>>>;
   accounts: Partial<Record<Target, { accountId: string; handle: string; identityVerified: boolean;
     destination: string; visibility: 'public' | 'private'; musicPolicy: string;
     disclosures?: { ownBrand: boolean; paidPartnership: boolean; aiGenerated: boolean };
@@ -25,7 +26,7 @@ export async function sourceManifest(source: SourceExport, choices: Choices, now
     || !Number.isFinite(Date.parse(source.asOf)) || !Number.isFinite(Date.parse(now))
     || Date.parse(now) < Date.parse(source.asOf) || Date.parse(now) - Date.parse(source.asOf) > 15 * 60 * 1000) throw new Error('source_snapshot_stale_or_invalid');
   if (!Array.isArray(choices.selected) || !choices.selected.length || choices.selected.some(t => !targets.includes(t))
-    || !Number.isInteger(choices.cap) || choices.cap < 1 || choices.cap > 20) throw new Error('source_scope_invalid');
+    || !Number.isInteger(choices.cap) || choices.cap < 1 || choices.cap > 200) throw new Error('source_scope_invalid');
   if (source.articles.length > 10_000 || new Set(source.accounts.map(a => a.target)).size !== source.accounts.length) throw new Error('source_snapshot_invalid');
   const snapshot: Snapshot = { owner: source.owner, revision: source.revision, complete: true, nextCursor: null,
     accounts: choices.selected.map(target => {
@@ -38,10 +39,12 @@ export async function sourceManifest(source: SourceExport, choices: Choices, now
       canonicalUrl: article.canonicalUrl, publishedAt: article.publishedAt,
       payloads: Object.fromEntries(choices.selected.map(target => {
         const copy = article.payloads[target], account = choices.accounts[target]!;
+        const destination = choices.destinations?.[target]?.[article.slug];
         return [target, { title: copy?.title ?? '', caption: copy?.caption ?? '', approved: copy?.approved === true,
-          destination: account.destination, visibility: account.visibility, musicPolicy: account.musicPolicy,
+          destination: destination?.destination ?? account.destination, visibility: account.visibility, musicPolicy: account.musicPolicy,
           ...(account.disclosures ? { disclosures: account.disclosures } : {}),
-          ...(account.postType ? { postType: account.postType, flair: account.flair ?? null } : {}),
+          ...(destination?.postType || account.postType ? { postType: destination?.postType ?? account.postType,
+            flair: destination && 'flair' in destination ? destination.flair : account.flair ?? null } : {}),
           // Preliminary references let the planner limit downloads to selected eligible work.
           media: article.mediaUrl ? { url: article.mediaUrl, sha256: '0'.repeat(64) } : null } satisfies Payload];
       })) })) };

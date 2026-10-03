@@ -109,6 +109,10 @@ export class Operations {
     const row = this.db.prepare('SELECT * FROM attempts WHERE run_id=? AND item_id=?').get(id, itemId) as Attempt | undefined;
     check(row, 'attempt_missing'); return row;
   }
+  authorizeClick(id: string, itemId: string, fence: number, now: string) {
+    this.guard(id, fence, now);
+    check(this.attempt(id, itemId).state === 'submitting', 'submission_no_longer_authorized');
+  }
   unknown(id: string, itemId: string) {
     check(this.attempt(id, itemId).state === 'submitting', 'invalid_unknown_transition');
     this.db.prepare('UPDATE attempts SET state=? WHERE run_id=? AND item_id=?').run('submission_unknown', id, itemId);

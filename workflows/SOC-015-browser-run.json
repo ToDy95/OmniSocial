@@ -1,0 +1,51 @@
+{
+  "id": "omnisocialBrowserRun",
+  "name": "SOC-015 · Start browser flow",
+  "active": false,
+  "nodes": [
+    { "id": "manual", "name": "Start", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [0, 0], "parameters": {} },
+    { "id": "choices", "name": "Choose action and approved lot", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [240, 0], "parameters": {
+      "assignments": { "assignments": [
+        { "id": "operation", "name": "operation", "value": "plan", "type": "string" },
+        { "id": "mode", "name": "mode", "value": "dry_run", "type": "string" },
+        { "id": "confirmed", "name": "ownerConfirmed", "value": false, "type": "boolean" },
+        { "id": "manifest", "name": "manifestId", "value": "", "type": "string" },
+        { "id": "digest", "name": "digest", "value": "", "type": "string" },
+        { "id": "target", "name": "target", "value": "portfolio", "type": "string" },
+        { "id": "run", "name": "runId", "value": "", "type": "string" },
+        { "id": "item", "name": "itemId", "value": "", "type": "string" },
+        { "id": "receipt", "name": "url", "value": "", "type": "string" }
+      ] }, "options": {}
+    } },
+    { "id": "command", "name": "Run local browser action", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [480, 0], "parameters": {
+      "method": "POST", "url": "={{ 'http://127.0.0.1:8787/v1/browser/' + $json.operation }}",
+      "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+      "sendBody": true, "specifyBody": "json",
+"jsonBody": "={{ JSON.stringify($json.operation === 'publish' ? { jobId: 'browser-' + $execution.id, manifestId: $json.manifestId, digest: $json.digest, mode: $json.mode, ownerConfirmed: $json.ownerConfirmed } : $json.operation === 'login' ? { jobId: 'browser-' + $execution.id, target: $json.target } : $json.operation === 'reconcile' ? { jobId: 'browser-' + $execution.id, runId: $json.runId, itemId: $json.itemId, ...($json.url ? { url: $json.url } : {}) } : ['stop', 'close'].includes($json.operation) ? { runId: $json.runId } : { jobId: 'browser-' + $execution.id }) }}",
+      "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+    }, "credentials": { "httpHeaderAuth": { "id": "omnisocialWorker", "name": "OmniSocial local worker" } }, "onError": "continueRegularOutput" },
+    { "id": "running", "name": "Browser still working?", "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [720, 0], "parameters": {
+      "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+        "conditions": [{ "id": "running", "leftValue": "={{ $json.state === 'running' }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }], "combinator": "and" }, "options": {}
+    } },
+    { "id": "wait", "name": "Wait for browser", "type": "n8n-nodes-base.wait", "typeVersion": 1.1, "position": [960, -120], "parameters": { "resume": "timeInterval", "amount": 5, "unit": "seconds" } },
+    { "id": "status", "name": "Read browser result", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [1200, -120], "parameters": {
+      "url": "={{ 'http://127.0.0.1:8787/v1/browser/jobs/' + $json.jobId }}",
+      "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+      "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+    }, "credentials": { "httpHeaderAuth": { "id": "omnisocialWorker", "name": "OmniSocial local worker" } }, "onError": "continueRegularOutput" },
+    { "id": "result", "name": "Result and next owner step", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [960, 140], "parameters": {
+      "jsCode": "const value = $input.first().json; const result = value.result ?? value; return [{ json: { ...value, action: result.status === 'review_required' ? 'Review the protected local source-plan report. Set publish, its exact manifestId/digest and ownerConfirmed=true, then press Start for this finite lot.' : result.status === 'awaiting_owner_login' ? 'Complete login in the dedicated browser window, then press Start again with plan.' : result.status === 'completed' || result.status === 'caught_up' || result.status === 'synchronized' ? 'Read the account progress and receipt report.' : 'Inspect the stopped reason. Do not repeat publication after an uncertain result; use reconcile.' } }];"
+    } }
+  ],
+  "connections": {
+    "Start": { "main": [[{ "node": "Choose action and approved lot", "type": "main", "index": 0 }]] },
+    "Choose action and approved lot": { "main": [[{ "node": "Run local browser action", "type": "main", "index": 0 }]] },
+    "Run local browser action": { "main": [[{ "node": "Browser still working?", "type": "main", "index": 0 }]] },
+    "Browser still working?": { "main": [[{ "node": "Wait for browser", "type": "main", "index": 0 }], [{ "node": "Result and next owner step", "type": "main", "index": 0 }]] },
+    "Wait for browser": { "main": [[{ "node": "Read browser result", "type": "main", "index": 0 }]] },
+    "Read browser result": { "main": [[{ "node": "Browser still working?", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveExecutionProgress": false, "saveManualExecutions": false, "saveDataSuccessExecution": "none", "saveDataErrorExecution": "none", "executionTimeout": 3600 },
+  "pinData": {}, "tags": []
+}
