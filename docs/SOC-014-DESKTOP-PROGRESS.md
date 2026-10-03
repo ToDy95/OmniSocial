@@ -61,8 +61,25 @@ Primary-source research observations (2026-10-03):
 - Weekend adventures: [hiking moderator announcement](https://www.reddit.com/r/hiking/comments/1rt621q/when_is_a_hike_a_hike_and_other_rule_based/)
   requires context from an actual hike and describes anti-spam/AI controls.
   Generated cover images alone do not establish personal hiking experience.
-- Backend, AI/business, developer life and weekend reset: no destination rule
-  acceptance established yet. Research remains open; no fallback is auto-approved.
+- Backend: [programming rules](https://www.reddit.com/r/programming/) reject
+  LLM-written content including translations/summaries and product demos; substantive
+  technical write-ups can qualify. Generated blog/caption packages are not eligible
+  by default. A human-authored technical article needs its own review.
+- AI/business: [artificial rules](https://www.reddit.com/r/artificial/) require
+  prior participation before promotional content, with a community-specific 10%
+  limit. Existing qualifying participation has not been verified. No engagement
+  activity is authorized to manufacture eligibility.
+- Developer life: [ExperiencedDevs rules](https://www.reddit.com/r/ExperiencedDevs/)
+  require developer experience, flair and community karma; poster comments and AI
+  disclosures through replies are required. This cannot be an unattended V1
+  new-post-only destination.
+- Weekend reset: [productivity rules](https://www.reddit.com/r/productivity/)
+  prohibit self-promotion, AI-generated content and listicles. Excluded for the
+  generated promotional blog workflow.
+
+This first category pass identifies restrictions rather than approving a mass
+backlog publication. Alternative communities and the exact articles require
+further relevance/rule review. Topic overlap cannot override a prohibition.
 
 Validation: 25 local tests passed, strict type checking passed, and whitespace
 checks passed. These validate the local gate/report logic, not provider posting.
