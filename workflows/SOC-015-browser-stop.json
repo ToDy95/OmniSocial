@@ -1,0 +1,14 @@
+{
+  "id": "omnisocialBrowserStop", "name": "SOC-015 · Stop browser flow", "active": false,
+  "nodes": [
+    { "id": "start", "name": "Start", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [0, 0], "parameters": {} },
+    { "id": "run", "name": "Choose run to stop", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [240, 0], "parameters": { "assignments": { "assignments": [{ "id": "run", "name": "runId", "value": "", "type": "string" }] }, "options": {} } },
+    { "id": "stop", "name": "Stop worker submissions", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [480, 0], "parameters": {
+      "method": "POST", "url": "http://127.0.0.1:8787/v1/browser/stop", "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+      "sendBody": true, "specifyBody": "json", "jsonBody": "={{ JSON.stringify({runId: $json.runId}) }}",
+      "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+    }, "credentials": { "httpHeaderAuth": { "id": "omnisocialWorker", "name": "OmniSocial local worker" } }, "onError": "continueRegularOutput" }
+  ],
+  "connections": { "Start": { "main": [[{ "node": "Choose run to stop", "type": "main", "index": 0 }]] }, "Choose run to stop": { "main": [[{ "node": "Stop worker submissions", "type": "main", "index": 0 }]] } },
+  "settings": { "executionOrder": "v1", "saveExecutionProgress": false, "saveManualExecutions": false, "saveDataSuccessExecution": "none", "saveDataErrorExecution": "none", "executionTimeout": 30 }, "pinData": {}, "tags": []
+}

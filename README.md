@@ -29,3 +29,9 @@ website scripting or supports every media operation.
 V2 social research, reviewed engagement, and daily or weekly editorial summaries
 remain deferred. No schedule, workflow execution, account connection, deployment,
 or external social action is included in SOC-001.
+
+## Live browser implementation
+
+The manual Playwright runner and n8n entry points are documented in
+[SOC-015](docs/SOC-015-PLAYWRIGHT.md). Login, UI calibration, portfolio readback
+release and an approved live pilot remain separate from fixture validation.

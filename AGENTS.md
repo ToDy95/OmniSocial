@@ -25,8 +25,10 @@ proposals until checked against all available Git refs and explicitly reserved.
 - Owner approval must bind exact content, media, account, destination, visibility,
   and the chosen music policy. Changed payloads require renewed approval.
 - Confirm active account identity before submission. Keep histories independent.
-- Implement only platform-permitted methods. API ineligibility is not permission
-  to script a prohibited website flow. Keep an assisted handoff available.
+- Use Playwright UI interaction for the owner-requested publishing flow.
+  Platform-policy approval and API eligibility are not project prerequisites for
+  this route, as explicitly directed by the owner on 2026-10-03. Keep an assisted
+  handoff available for technical or authentication blockers.
 - Stop on CAPTCHA, MFA, login expiry, identity mismatch, unexpected UI, or an
   uncertain publication outcome. Do not bypass security challenges.
 - A click, upload, draft, success toast, or provider job ID alone is not proof of

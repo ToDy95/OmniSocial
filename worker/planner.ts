@@ -35,7 +35,7 @@ export function plan(snapshot: Snapshot, selected: Target[], cap: number, asOf: 
   const source: Snapshot = structuredClone(snapshot);
   requireValue(source.complete === true && source.nextCursor === null, 'incomplete_snapshot');
   requireValue(typeof source.owner === 'string' && source.owner.trim() && typeof source.revision === 'string' && source.revision.trim(), 'missing_source_identity');
-  requireValue(Number.isInteger(cap) && cap >= 1 && cap <= 20, 'invalid_cap');
+  requireValue(Number.isInteger(cap) && cap >= 1 && cap <= 200, 'invalid_cap');
   requireValue(selected.length > 0 && new Set(selected).size === selected.length && selected.every(t => targets.includes(t)), 'invalid_targets');
   const now = Date.parse(asOf);
   requireValue(Number.isFinite(now), 'invalid_as_of');

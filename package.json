@@ -19,6 +19,8 @@
     "import:plan": "node scripts/import-plan.ts",
     "import:recovery": "node scripts/import-workflows.ts",
     "import:batch": "node scripts/import-workflows.ts batch",
+    "setup:browser": "node scripts/setup-browser.ts",
+    "import:browser": "node scripts/import-workflows.ts browser",
     "execute:fixture": "node scripts/execute-fixture.ts",
     "plan:source": "node scripts/plan-source.ts",
     "approve:manifest": "node scripts/approve-manifest.ts",
