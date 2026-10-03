@@ -40,7 +40,7 @@ validate inputs and return handoff instructions; they do not submit posts.
 - Manual editor execution then reached `Finite fixture report` with
   `batch_fixture_completed`, 12 validated, `dry_run`, zero submitted and zero
   verified public. A synthetic screenshot is stored only in ignored local reports.
-- Portfolio TOD-126 draft PR 132 contains an owner-only read-only source export.
+- Portfolio TOD-126 PR 132, now squash-merged, contains an owner-only read-only source export.
   Its local suite/type/build/auth checks are recorded in that repository. The
   source was subsequently downloaded through the authenticated local owner
   workspace. The complete export contained 45 articles, with no pagination
@@ -112,7 +112,9 @@ service records. All logs, profiles, journal, exports and reports stay ignored l
 Authenticated local source read is verified. Fresh account identities,
 devices/destinations/music,
 guarded real handoff orchestration, receipt-bound portfolio integration, separately
-approved real pilot, owner runbook acceptance, PR review and any authorized merge
-or deployment remain open. The full V1 is not complete or enabled. SOC-013 is the
-next Git allocation candidate after SOC-012, subject to a fresh audit; it is not
-automatically reserved or started by this document. V2 remains deferred.
+approved real pilot and owner runbook acceptance remain open. SOC-001 through
+SOC-012 and portfolio TOD-126 are squash-merged; see [delivery evidence](DELIVERY-AUDIT.md).
+The portfolio merge commit has a successful Vercel status, but authenticated
+production endpoint readback is not verified. The full V1 is not complete or
+enabled. SOC-014 is the next allocation candidate after the SOC-013 delivery audit,
+subject to a fresh audit. V2 remains deferred.
