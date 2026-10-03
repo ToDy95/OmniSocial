@@ -43,3 +43,10 @@ block copy that the native composer would accept; revise/reapprove explicitly.
 Optional PNG/JPEG images require matched digest and a conservative 5 MiB ceiling.
 Actual identity, native counter/media acceptance, entitlement and public status
 receipt remain open. Source: [X automation rules](https://help.x.com/en/rules-and-policies/x-automation).
+
+SOC-010 adds Personal/Business Pinterest handoffs with independent identities,
+the exact owned writable public board, PNG/JPEG acceptance, conservative title
+100/description 800 limits and the canonical portfolio blog link. API eligibility
+is not inferred. A board change requires a newly approved manifest. No Pin is
+created by the adapter; actual board/account/media/link/public receipt acceptance
+requires an owner pilot. Source: [Pinterest official API schema](https://github.com/pinterest/api-description/blob/main/v5/openapi.yaml).
