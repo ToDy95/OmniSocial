@@ -4,6 +4,8 @@
 !.env.example
 .secrets/
 .auth/
+.n8n/
+n8n-data/
 profiles/
 storage-state/
 
@@ -12,6 +14,7 @@ runtime/
 downloads/
 reports/
 artifacts/
+*.log
 *.sqlite
 *.sqlite-*
 *.db
