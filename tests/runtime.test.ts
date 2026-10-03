@@ -58,6 +58,17 @@ test('worker refuses missing auth, browser origin, foreign host and side-effect 
     assert.equal((await fetch(`${url}/v1/plan-fixture?mode=publish`, { headers })).status, 404);
     assert.equal((await fetch(`${url}/v1/plan-fixture`, { method: 'POST', headers })).status, 404);
     assert.equal((await fetch(`${url}/v1/plan-fixture`)).status, 401);
+    const batch = await (await fetch(`${url}/v1/fixture/batch`, { headers })).json();
+    assert.equal(batch.report.validated, 12);
+    const scope = batch.accounts[0].items[0];
+    const post = (body: string) => fetch(`${url}/v1/fixture/item`, { method: 'POST', headers: { ...headers, 'content-type': 'application/json' }, body });
+    const item = await (await post(JSON.stringify(scope))).json();
+    assert.equal(item.status, 'dry_run_validated');
+    assert.equal(item.automatedSubmission, false);
+    assert.equal((await post(JSON.stringify({ ...scope, mode: 'publish' }))).status, 400);
+    assert.equal((await post('{')).status, 400);
+    assert.equal((await post('x'.repeat(4097))).status, 413);
+    assert.equal((await fetch(`${url}/v1/fixture/item`, { method: 'POST', headers, body: '{}' })).status, 400);
     ready = false;
     assert.equal((await fetch(`${url}/v1/health`, { headers })).status, 503);
     assert.equal((await fetch(`${url}/v1/plan-fixture`, { headers })).status, 503);

@@ -8,12 +8,14 @@ export function fixtureSnapshot(): Snapshot {
       processed: target === 'tiktok_personal' ? ['article-a'] : [],
       unresolved: target === 'pinterest_business' ? ['article-b'] : [] })),
     articles: ['c', 'a', 'b'].map(letter => ({ id: `article-${letter}`, slug: `fixture-${letter}`,
-      canonicalUrl: `https://example.invalid/articles/${letter}`,
+      canonicalUrl: `https://www.razvantodica.com/blog/fixture-${letter}`,
       publishedAt: `2026-01-0${letter.charCodeAt(0) - 96}T00:00:00.000Z`,
       payloads: Object.fromEntries(targets.map(target => [target, { approved: true, title: `Fixture ${letter}`,
         caption: `Synthetic ${letter} copy for ${target}.`, media: { url: `https://example.invalid/media/${letter}.png`, sha256: letter.repeat(64) },
         destination: target === 'reddit' ? 'r/fixture' : target.startsWith('pinterest') ? 'fixture-board' : 'fixture-profile',
-        visibility: 'public', musicPolicy: 'none' }])) })) };
+        visibility: 'public', musicPolicy: 'none',
+        ...(target.startsWith('tiktok') ? { disclosures: { ownBrand: target === 'tiktok_codeonroids', paidPartnership: false, aiGenerated: true } } : {}),
+        ...(target === 'reddit' ? { postType: 'image', flair: null } : {}) }])) })) };
 }
 export function fixturePlan() {
   const manifest = plan(fixtureSnapshot(), [...targets], 2, '2026-01-10T00:00:00.000Z');

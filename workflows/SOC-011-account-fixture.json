@@ -1,0 +1,242 @@
+{
+  "id": "omnisocialAccountFixture",
+  "name": "SOC-011 · Sequential account fixture child",
+  "active": false,
+  "nodes": [
+    {
+      "id": "scoped-fixture-input",
+      "name": "Scoped fixture input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "fixed-account-items",
+      "name": "Fixed account items",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "fieldToSplitOut": "account.items",
+        "include": "noOtherFields",
+        "options": {
+          "destinationFieldName": "item"
+        }
+      }
+    },
+    {
+      "id": "one-item-at-a-time",
+      "name": "One item at a time",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      }
+    },
+    {
+      "id": "validate-one-item",
+      "name": "Validate one item",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        100
+      ],
+      "parameters": {
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "value": "omnisocialItemFixture",
+          "mode": "list"
+        },
+        "mode": "once",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "item-validated?",
+      "name": "Item validated?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "safe",
+              "leftValue": "={{ $json.status === 'dry_run_validated' && $json.synthetic === true && $json.publishingEnabled === false && $json.mode === 'dry_run' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "account-blocked",
+      "name": "Account blocked",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        240
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "status",
+              "value": "blocked",
+              "type": "string"
+            },
+            {
+              "id": "reason",
+              "name": "reason",
+              "value": "fixture_child_blocked",
+              "type": "string"
+            },
+            {
+              "id": "publishingEnabled",
+              "name": "publishingEnabled",
+              "value": false,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "account-results",
+      "name": "Account results",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        -100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": []
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Scoped fixture input": {
+      "main": [
+        [
+          {
+            "node": "Fixed account items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixed account items": {
+      "main": [
+        [
+          {
+            "node": "One item at a time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One item at a time": {
+      "main": [
+        [
+          {
+            "node": "Account results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validate one item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate one item": {
+      "main": [
+        [
+          {
+            "node": "Item validated?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item validated?": {
+      "main": [
+        [
+          {
+            "node": "One item at a time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Account blocked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "executionTimeout": 120,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {},
+  "tags": []
+}
