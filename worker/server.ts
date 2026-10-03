@@ -5,8 +5,10 @@ import { pathToFileURL } from 'node:url';
 import { root, secret } from './local.ts';
 import { openJournal } from './journal.ts';
 import { fixturePlan } from './fixture.ts';
+import { recoveryFixture } from './recovery-fixture.ts';
+import { Operations } from './operations.ts';
 
-export function createWorker(token: string, journalReady: () => boolean) {
+export function createWorker(token: string, journalReady: () => boolean, operations?: Operations) {
   return createServer((req, res) => {
     const reply = (status: number, body: object) => {
       res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
@@ -20,9 +22,17 @@ export function createWorker(token: string, journalReady: () => boolean) {
     if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
       return reply(401, { error: 'unauthorized' });
     }
-    if (req.method !== 'GET' || !['/v1/health', '/v1/plan-fixture'].includes(req.url ?? '')) return reply(404, { error: 'operation_unavailable' });
+    const fixtures = ['/v1/fixture/prepare', '/v1/fixture/verify', '/v1/fixture/reconcile', '/v1/fixture/report', '/v1/fixture/stop'];
+    const save = req.method === 'POST' && req.url === '/v1/save-fixture-plan' && operations
+      && !req.headers['transfer-encoding'] && (!req.headers['content-length'] || req.headers['content-length'] === '0');
+    if (!save && (req.method !== 'GET' || !['/v1/health', '/v1/plan-fixture', ...fixtures].includes(req.url ?? ''))) return reply(404, { error: 'operation_unavailable' });
     try {
       if (!journalReady()) throw new Error('Journal unavailable');
+      if (save) {
+        const result = fixturePlan(); operations!.saveManifest(result.manifest);
+        return reply(200, { ...result, persisted: true, approvalRequired: true });
+      }
+      if (fixtures.includes(req.url ?? '')) return reply(200, recoveryFixture());
       if (req.url === '/v1/plan-fixture') return reply(200, fixturePlan());
       reply(200, { status: 'ok', mode: 'dry_run', publishingEnabled: false, sourceConnected: false, schemaVersion: 1 });
     } catch {
@@ -34,7 +44,8 @@ export function createWorker(token: string, journalReady: () => boolean) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   process.umask(0o077);
   const db = openJournal(join(root, 'runtime', 'journal.sqlite'));
-  const server = createWorker(secret('worker-token'), () => Boolean(db.prepare("SELECT value FROM runtime_metadata WHERE key='schema_version'").get()));
+  const operations = new Operations(db);
+  const server = createWorker(secret('worker-token'), () => Boolean(db.prepare("SELECT value FROM runtime_metadata WHERE key='schema_version'").get()), operations);
   server.listen(8787, '127.0.0.1', () => console.log('OmniSocial worker: http://127.0.0.1:8787 (dry run only)'));
   server.on('error', () => { db.close(); console.error('Worker could not start'); process.exitCode = 1; });
   for (const signal of ['SIGINT', 'SIGTERM'] as const) process.on(signal, () => server.close(() => { db.close(); process.exit(0); }));
