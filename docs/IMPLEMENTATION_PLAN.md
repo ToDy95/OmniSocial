@@ -475,7 +475,7 @@ scope. Sessions can be revoked locally; metadata never stores passwords.
 
 ## 11. Milestones and delivery order
 
-SOC-001 through SOC-009 are allocated after Git audits. Later IDs are proposed
+SOC-001 through SOC-010 are allocated after Git audits. Later IDs are proposed
 roadmap reservations; audit all refs before allocating each new task. Split an
 oversized milestone if needed and update the roadmap rather than reuse IDs.
 
@@ -490,7 +490,7 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | SOC-007 | TikTok Business configuration/pilot | Separate identity/history, eligible commercial sound and disclosures, Personal cannot contaminate Business; owner-authorized receipt | Assisted Business validation and fingerprint-bound disclosure choices implemented with fixtures. Actual account type, rights and owner-approved native pilot pending. |
 | SOC-008 | Reddit adapter and WF-06 | Current accepted API access or assisted route, reviewed single subreddit/type/flair, no duplicate, evidence-backed result and source sync | Assisted subreddit/type/flair validator implemented with fixtures; API disabled. Actual community, identity, pilot receipt and source sync acceptance pending. |
 | SOC-009 | X adapter and WF-07 | Eligible API or assisted owner handoff, compact copy/media validation, no website scripting, receipt/source sync | Assisted composer/compact-copy validator implemented with fixtures; website scripting and API disabled. Real identity/media/public receipt and sync acceptance pending. |
-| SOC-010 | Pinterest Personal and Business adapter and WF-08 | Separate eligible account/board mappings, image/link/description verification, independent owner-authorized receipts | Planned, access gate |
+| SOC-010 | Pinterest Personal and Business adapter and WF-08 | Separate eligible account/board mappings, image/link/description verification, independent owner-authorized receipts | Assisted two-account board/copy/link validator implemented with fixtures; API disabled. Actual board/identity and owner-approved Pin receipts pending. |
 | SOC-011 | Account/post loops, WF-02/03, full finite batch and reports | Imported exports round-trip, sequential target order, cap/expiry enforcement, no schedules, replay-safe full fixture batch and authorized small mixed pilot | Planned |
 | SOC-012 | V1 readiness audit, runbook, recovery rehearsal and report review | Failure/security/replay cases pass, documentation matches actual capabilities, unsupported targets clearly assisted/blocked, owner accepts operating procedure | Planned |
 
