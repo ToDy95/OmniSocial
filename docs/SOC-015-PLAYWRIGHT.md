@@ -22,6 +22,10 @@ posting. The previous assisted adapters remain available independently.
 2. Use **SOC-015 · Start browser flow**, action `login`, target `portfolio` or the
    selected account. Sign in interactively in Google Chrome for Testing. Passwords
    and MFA codes stay outside n8n and repository files.
+   TikTok's Google sign-in popup may navigate to the exact HTTPS
+   `accounts.google.com` origin during this explicit manual login step. Other
+   external origins remain blocked. Entering automated work ends that allowance;
+   the worker never drives Google sign-in or selects the OAuth popup as a composer.
 3. Calibrate provider controls from observed UI in protected
    `runtime/browser/config.json`. Configuration is local and cannot be supplied
    through a worker request. Configure the approved source media origin, selected
@@ -113,15 +117,16 @@ An already in-flight click can remain uncertain and requires reconciliation.
 
 ## Validation recorded
 
-39 local Node tests passed, including fourteen new runner/HTTP/job/image/UI/workflow fixtures.
+41 local Node tests passed, including sixteen new runner/HTTP/job/image/UI/workflow fixtures.
 Strict TypeScript checking passed. Fixtures cover a complete sequential six-account
 lot, dry-plan mutation absence, uncertain submit, sync-only retry, stop during
 composer, configuration drift, operation replay, interrupted jobs and protected
-HTTP schemas. Five tests launch real Playwright against intercepted fixture HTML:
+HTTP schemas. Six tests launch real Playwright against intercepted fixture HTML:
 noncontiguous source progress, missing source contract, and upload/copy/first-ten
 music selection with a final click guard, and visible preparation/receipt writeback
 with idempotent readback, and Reddit destination/post-type checks immediately
-before submission. They make no external network requests.
+before submission, and a manual Google popup returning to TikTok with the OAuth
+allowance revoked before automated work. They make no external network requests.
 Provider identities and receipts in all these tests are synthetic.
 
 Both manual workflows were imported inactive into the local n8n instance. A

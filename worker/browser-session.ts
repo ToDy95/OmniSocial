@@ -9,6 +9,22 @@ export class BrowserStop extends Error {
   readonly target?: string;
   constructor(code: string, target?: string) { super(code); this.target = target; }
 }
+export function allowedProfileNavigation(url: string, origin: string, manualGoogleLogin: boolean) {
+  if (url === 'about:blank') return true;
+  try {
+    const parsed = new URL(url);
+    if (parsed.username || parsed.password) return false;
+    return parsed.origin === origin || manualGoogleLogin && parsed.origin === 'https://accounts.google.com';
+  } catch { return false; }
+}
+export function guardProfileNavigation(context: BrowserContext, origin: string, manualGoogleLogin: () => boolean) {
+  const watch = (page: Page) => page.on('framenavigated', frame => {
+    if (frame !== page.mainFrame()) return;
+    if (!allowedProfileNavigation(frame.url(), origin, manualGoogleLogin())) void page.close().catch(() => {});
+  });
+  for (const page of context.pages()) watch(page);
+  context.on('page', watch);
+}
 export async function one(page: Page, selector: string): Promise<Locator> {
   const locator = page.locator(selector);
   if (await locator.count() !== 1 || !await locator.isVisible()) throw new BrowserStop('unexpected_ui');
@@ -24,6 +40,7 @@ export async function assertSession(page: Page, origin: string) {
 export class BrowserSessions {
   private contexts = new Map<string, BrowserContext>();
   private identityPages = new Map<string, Page>();
+  private ownerLogins = new Set<string>();
   async identityPage(target: Target): Promise<Page> {
     const page = await this.page(target);
     let identity = this.identityPages.get(target);
@@ -33,6 +50,8 @@ export class BrowserSessions {
     return identity;
   }
   async page(target: Target | 'portfolio'): Promise<Page> {
+    // Entering automated work ends the manual-only OAuth navigation allowance.
+    this.ownerLogins.delete(target);
     let context = this.contexts.get(target);
     if (!context) {
       const directory = join(root, 'profiles', target);
@@ -42,18 +61,21 @@ export class BrowserSessions {
       context.setDefaultTimeout(10_000);
       // Fixed origins only. The profile never points at the owner's daily Chrome data.
       const origin = target === 'portfolio' ? portfolioOrigin : providerOrigins[target];
-      context.on('page', page => page.on('framenavigated', frame => {
-        if (frame !== page.mainFrame() || frame.url() === 'about:blank') return;
-        try { if (new URL(frame.url()).origin !== origin) void page.close(); } catch { void page.close(); }
-      }));
+      guardProfileNavigation(context, origin, () => target.startsWith('tiktok') && this.ownerLogins.has(target));
       this.contexts.set(target, context);
     }
+    const origin = target === 'portfolio' ? portfolioOrigin : providerOrigins[target];
     const pages = context.pages();
-    const page = pages[0] ?? await context.newPage();
+    // An OAuth popup is never selected as the source/composer automation page.
+    const page = pages.find(p => p.url().startsWith(`${origin}/`))
+      ?? pages.find(p => p.url() === 'about:blank') ?? await context.newPage();
     return page;
   }
   async login(target: Target | 'portfolio', url: string) {
+    const origin = target === 'portfolio' ? portfolioOrigin : providerOrigins[target];
+    if (new URL(url).origin !== origin) throw new BrowserStop('login_origin_invalid');
     const page = await this.page(target);
+    this.ownerLogins.add(target);
     await page.goto(url, { waitUntil: 'domcontentloaded' });
     await page.bringToFront();
     return { status: 'awaiting_owner_login', target };
@@ -71,6 +93,7 @@ export class BrowserSessions {
   async close() {
     const contexts = [...this.contexts.values()]; this.contexts.clear();
     this.identityPages.clear();
+    this.ownerLogins.clear();
     await Promise.allSettled(contexts.map(c => c.close()));
   }
 }
