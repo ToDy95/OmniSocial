@@ -16,3 +16,17 @@ test('TikTok Personal validates exact native photo handoff; dry run prepares not
   const changed = structuredClone(item); changed.payload.caption += ' changed';
   assert.equal(tiktokPersonal(changed, context).reason, 'payload_changed');
 });
+test('desktop photos need fresh per-account capability and remain an owner handoff', () => {
+  const { item, context } = personalFixture();
+  const desktop = { ...context, device: 'mac' as const, desktopPhotoUploadVerified: true, mediaFormat: 'webp' };
+  assert.equal(tiktokPersonal(item, desktop).status, 'dry_run_validated');
+  assert.equal(tiktokPersonal(item, { ...desktop, desktopPhotoUploadVerified: false }).reason, 'desktop_photo_capability_required');
+  assert.equal(tiktokPersonal(item, { ...desktop, observedAt: '2025-12-31T23:00:00Z' }).reason, 'fresh_matching_identity_required');
+  assert.equal(tiktokPersonal(item, { ...desktop, accountId: 'other' }).status, 'blocked');
+  assert.equal(tiktokPersonal(item, { ...desktop, transport: 'api' }).status, 'blocked');
+  assert.equal(tiktokPersonal(item, { ...desktop, device: 'iphone' }).reason, 'photo_format_acceptance_required');
+  const decision = tiktokPersonal(item, { ...desktop, mode: 'publish' });
+  assert.equal(decision.status, 'awaiting_owner');
+  assert.equal(decision.automatedSubmission, false);
+  assert.match(decision.handoff!.destination, /tiktokstudio\/upload/);
+});

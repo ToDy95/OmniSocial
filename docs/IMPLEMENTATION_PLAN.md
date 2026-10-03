@@ -475,7 +475,7 @@ scope. Sessions can be revoked locally; metadata never stores passwords.
 
 ## 11. Milestones and delivery order
 
-SOC-001 through SOC-013 are allocated after Git audits. Later IDs are proposed
+SOC-001 through SOC-014 are allocated after Git audits. Later IDs are proposed
 roadmap reservations; audit all refs before allocating each new task. Split an
 oversized milestone if needed and update the roadmap rather than reuse IDs.
 
@@ -494,6 +494,7 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | SOC-011 | Account/post loops, WF-02/03, full finite batch and reports | Imported exports round-trip, sequential target order, cap/expiry enforcement, no schedules, replay-safe full fixture batch and authorized small mixed pilot | Fixture implementation validated: 22 tests passed and n8n CLI completed all 12 synthetic items with zero submissions. Seven imports matched; children unpublished after rehearsal. [Evidence](SOC-011-FINITE-BATCH.md). Real mixed pilot gated. |
 | SOC-012 | V1 readiness audit, runbook, recovery rehearsal and report review | Failure/security/replay cases pass, documentation matches actual capabilities, unsupported targets clearly assisted/blocked, owner accepts operating procedure | Local audit/runbook and strict worker/script type checking implemented; 23 fixtures passed. [Readiness matrix](V1-READINESS.md) records live source, real guarded orchestration/writeback, pilot and owner acceptance gates. Full V1 not ready. |
 | SOC-013 | Delivery reconciliation after owner-authorized merges | One squash commit per feature milestone, resulting main trees match reviewed branches, current documentation separates merges from live acceptance | [Delivery audit](DELIVERY-AUDIT.md) records merged SOC-001 through SOC-012 and portfolio TOD-126, passing checks, preserved local work and remaining owner inputs. Documentation only. |
+| SOC-014 | Desktop photo handoff and independent account progress | Fresh per-account desktop capability gate, protected source progress report, preparation distinct from public receipts | [Desktop and progress record](SOC-014-DESKTOP-PROGRESS.md) documents observed Business Photos support, owner board locators and remaining integration gates. Assisted handoff only; no real submission. |
 
 During implementation, maintain a capability matrix per account: transport,
 source/device checks, fixture validation, real-pilot evidence, and enablement
