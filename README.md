@@ -19,6 +19,7 @@ Initial milestone: SOC-001.
 - [Feasibility report](docs/SOC-002-FEASIBILITY.md): source contract and six-account gates.
 - [Local runtime](docs/LOCAL-RUNTIME.md): pinned setup, protection and manual startup.
 - [Dry-run manifests](docs/SOC-004-DRY-RUN.md): fixture planner, manual n8n flow and live-source gates.
+- [Durable operations](docs/SOC-005-OPERATIONS.md): protected approvals, leases, media validation and recovery.
 
 V1 covers TikTok Personal, TikTok Business, X, Reddit, Pinterest Business, and
 Pinterest Personal. Each destination has its own feasibility gate and verified

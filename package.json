@@ -3,19 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": "24.21.0" },
+  "engines": {
+    "node": "24.21.0"
+  },
   "packageManager": "npm@12.0.2",
-  "allowScripts": { "sqlite3@5.1.7": true, "isolated-vm@7.0.1": true },
+  "allowScripts": {
+    "sqlite3@5.1.7": true,
+    "isolated-vm@7.0.1": true
+  },
   "scripts": {
     "setup:local": "node scripts/setup-local.ts",
     "start:worker": "node worker/server.ts",
     "start:n8n": "node scripts/start-n8n.ts",
     "import:health": "node scripts/import-health.ts",
     "import:plan": "node scripts/import-plan.ts",
+    "import:recovery": "node scripts/import-workflows.ts",
+    "plan:source": "node scripts/plan-source.ts",
+    "approve:manifest": "node scripts/approve-manifest.ts",
     "test": "node --test tests/*.test.ts"
   },
   "dependencies": {
     "n8n": "2.41.6",
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "sharp": "0.35.3"
   }
 }

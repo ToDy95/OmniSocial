@@ -1,0 +1,199 @@
+{
+  "id": "omnisocialVerifyFixture",
+  "name": "SOC-005 · Manual verify fixture",
+  "active": false,
+  "nodes": [
+    {
+      "id": "manual-start",
+      "name": "Manual start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "worker-health",
+      "name": "Recovery fixture",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "url": "http://127.0.0.1:8787/v1/fixture/verify",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 5000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "omnisocialWorker",
+          "name": "OmniSocial local worker"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "check-health",
+      "name": "Recovery checks passed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "safe-health",
+              "leftValue": "={{ $json.status === 'recovery_fixture_ready' && $json.synthetic === true && $json.publishingEnabled === false && $json.retryBlocked === true && $json.reconciled === 'completed' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "health-ready",
+      "name": "Review recovery fixture",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        -100
+      ],
+      "parameters": {
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "result",
+              "name": "result",
+              "value": "recovery_fixture_ready",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "health-blocked",
+      "name": "Recovery fixture blocked",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "blocked-result",
+              "name": "result",
+              "value": "recovery_fixture_blocked",
+              "type": "string"
+            },
+            {
+              "id": "blocked-mode",
+              "name": "mode",
+              "value": "dry_run",
+              "type": "string"
+            },
+            {
+              "id": "blocked-publish",
+              "name": "publishingEnabled",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "blocked-action",
+              "name": "action",
+              "value": "Inspect the local worker before continuing. Do not prepare or publish.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Manual start": {
+      "main": [
+        [
+          {
+            "node": "Recovery fixture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recovery fixture": {
+      "main": [
+        [
+          {
+            "node": "Recovery checks passed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recovery checks passed?": {
+      "main": [
+        [
+          {
+            "node": "Review recovery fixture",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Recovery fixture blocked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "executionTimeout": 30
+  },
+  "pinData": {},
+  "tags": []
+}
