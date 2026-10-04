@@ -187,7 +187,9 @@ export class BrowserSource {
       // Only exact saved event evidence can resolve an ambiguous writeback.
       return this.readback(page, item, url, syncKey);
     }
-    const form = page.locator('form').filter({ has: page.locator('input[name="externalUrl"]') });
+    const form = page.locator('form')
+      .filter({ has: page.locator('input[name="externalUrl"]') })
+      .filter({ has: page.locator(`input[name="target"][value="${item.target}"]`) });
     if (await form.count() !== 1 || await form.locator('input[name="target"]').inputValue() !== item.target
       || await form.locator('input[name="slug"]').inputValue() !== item.slug) throw new BrowserStop('source_sync_target_changed');
     await form.locator('input[name="externalUrl"]').fill(url);
