@@ -160,10 +160,14 @@ export class BrowserProvider {
       await one(page, controls.musicEmpty);
       return null;
     }
-    if (policy !== 'random_trending_top10' || !controls.musicOpen || !controls.musicTrending || !controls.musicRows
+    const category = policy === 'random_for_you_top10' ? controls.musicForYou : controls.musicTrending;
+    if (!['random_trending_top10', 'random_for_you_top10'].includes(policy) || !controls.musicOpen || !category || !controls.musicRows
       || !controls.musicName || !controls.musicUse || !controls.musicSelected) throw new BrowserStop('trending_music_controls_unavailable');
     await (await one(page, controls.musicOpen)).click();
-    await (await one(page, controls.musicTrending)).click();
+    const tab = await one(page, category);
+    await tab.click();
+    if (policy === 'random_for_you_top10' && (normalize(await tab.innerText()) !== 'For You'
+      || await tab.getAttribute('aria-selected') !== 'true')) throw new BrowserStop('music_category_mismatch');
     const rows = page.locator(controls.musicRows);
     const count = Math.min(await rows.count(), 10);
     if (!count) throw new BrowserStop('trending_music_empty');

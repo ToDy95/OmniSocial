@@ -509,6 +509,11 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | SOC-014 | Desktop photo handoff and independent account progress | Fresh per-account desktop capability gate, protected source progress report, preparation distinct from public receipts | [Desktop and progress record](SOC-014-DESKTOP-PROGRESS.md) documents observed Business Photos support, owner board locators and remaining integration gates. Assisted handoff only; no real submission. |
 | SOC-015 | Owner-requested Playwright UI execution and manual n8n orchestration | UI source discovery, protected profiles, exact approval, sequential submit/receipt/writeback, restart-safe reconciliation and fixed private operations | [Browser execution](SOC-015-PLAYWRIGHT.md) implemented and validated with 42 local tests, including seven Playwright UI fixtures, and strict TypeScript. Two inactive manual n8n workflows imported and read back. Dedicated portfolio and both TikTok logins confirmed across a worker restart; fixed read-only inspection added and composer hydration wait corrected. Google popup closure fixed with a manual-only exact OAuth origin allowance. Portfolio TOD-127 production release and one separately approved Playwright pilot with public receipt and cloud ledger readback verified. Result forms now bind the exact target independently of Reach forms. General runner For You policy/selectors, remaining providers and a live n8n end-to-end publishing run remain pending. |
 
+SOC-015 follow-up: the distinct `random_for_you_top10` policy is implemented.
+All 44 local tests, including nine Playwright UI fixtures, and strict TypeScript
+pass. Provider selector calibration and a live n8n end-to-end run remain pending.
+No new milestone is allocated; the next candidate remains SOC-016.
+
 During implementation, maintain a capability matrix per account: transport,
 source/device checks, fixture validation, real-pilot evidence, and enablement
 state. A platform's unsupported automation does not block working supported or

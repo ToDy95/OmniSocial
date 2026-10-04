@@ -71,6 +71,12 @@ stops with `trending_music_controls_unavailable`; it never silently omits audio 
 turns the photo into a video. `none` also requires an observed empty-music state.
 The selected sound is journaled and checked on the public receipt before sync.
 
+`random_for_you_top10` is a separate explicit policy. It requires the calibrated
+`musicForYou` tab, verifies the exact For You label and selected state, and chooses
+uniformly among its first at most ten rows. It never falls back to Trending.
+Changing policy changes the manifest digest and requires exact lot approval.
+This does not activate publishing or calibrate missing provider controls.
+
 ## Private worker operations
 
 All routes require the existing owner-only bearer credential, an exact loopback
@@ -174,5 +180,8 @@ exact ledger event readback. Its protected local evidence is excluded from Git.
 The owner approved random selection within the first ten For You tracks because
 the observed desktop picker had no Trending category. This policy was used by
 the bounded pilot helper; the general runner still requires a corresponding
-policy and selector update before another approved lot. This pilot does not
+selector update before another approved lot. The general runner now supports
+the distinct For You policy with synthetic failure and first-ten tests. All
+44 tests, including nine intercepted Playwright UI fixtures, and strict
+TypeScript passed. This pilot does not
 establish a live n8n end-to-end publishing run or readiness of other providers.
