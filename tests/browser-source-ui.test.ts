@@ -71,7 +71,9 @@ test('Playwright portfolio preparation and receipt writeback use visible forms a
         await route.fulfill({ contentType: 'application/json', body: '{}' }); return;
       }
       const escape = (text: string) => text.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;');
-      await route.fulfill({ contentType: 'text/html', body: `<html><body><div data-slot="card">
+      await route.fulfill({ contentType: 'text/html', body: `<html><body>
+        <form onsubmit="throw Error('unrelated Reach form submitted')"><input name="packId" value="fixture-pack"><input name="externalUrl"><button>Confirm manual publication</button></form>
+        <div data-slot="card">
         <div data-slot="card-description">u/Fixture</div><div role="progressbar" aria-label="Publishing progress"
         aria-valuenow="${posted ? 2 : 1}" aria-valuemax="2" data-mobile-target="reddit"
         data-mobile-processed-slugs='${JSON.stringify(posted ? ['fixture-1', 'fixture-2'] : ['fixture-2'])}'></div>

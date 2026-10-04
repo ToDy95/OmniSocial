@@ -11,8 +11,9 @@ not a social publishing API.
 
 The browser execution engine, durable jobs and two manual n8n workflows are
 implemented. Portfolio and both TikTok dedicated-profile logins are confirmed.
-Remaining provider controls, the portfolio TOD-127 release and an exactly approved
-live pilot are still required. Do not
+The portfolio TOD-127 production release and one exactly approved TikTok Business
+Playwright pilot are verified. Remaining provider controls and runner calibration
+are still required. Do not
 interpret passing synthetic tests or imported workflows as successful public
 posting. The previous assisted adapters remain available independently.
 
@@ -141,8 +142,8 @@ the observed Photos tab before reading controls. Inspection accepts only a fixed
 selected target and identity/composer view, never arbitrary URLs or scripts.
 The actual Photos tab, file input and Select photos button were observed on both
 TikTok accounts. Post-upload fields and music controls still need calibration.
-No provider file
-upload, Post click, cloud Prepare or result write has been performed.
+At that pre-pilot checkpoint, no provider file upload, Post click, cloud Prepare
+or result write had been performed.
 
 ## Post-merge source verification
 
@@ -156,5 +157,22 @@ producing twelve exact review items without cloud preparation or publication.
 A hidden confirmation dialog adds an unrelated h2 inside the prepared Business
 card. Queue discovery now selects visible post headings; the intercepted source
 fixture includes this hidden dialog regression. All 42 tests and strict TypeScript
-passed. Post-upload composer and receipt calibration, exact pilot approval and
-remaining account setup are still pending.
+passed.
+
+## Receipt writeback calibration
+
+The live portfolio page includes a separate Reach publication form with its own
+`externalUrl` field. Blog result synchronization now selects the form by its
+exact target as well as its URL field and still checks the exact slug before
+writing. The synthetic Playwright fixture includes an unrelated Reach form and
+verifies a single result write and mutation-free replay. All 42 tests and strict
+TypeScript passed after this correction.
+
+One separately approved Business pilot was submitted through Playwright, verified
+on a cookie-less public page, and synchronized through the portfolio UI with an
+exact ledger event readback. Its protected local evidence is excluded from Git.
+The owner approved random selection within the first ten For You tracks because
+the observed desktop picker had no Trending category. This policy was used by
+the bounded pilot helper; the general runner still requires a corresponding
+policy and selector update before another approved lot. This pilot does not
+establish a live n8n end-to-end publishing run or readiness of other providers.
