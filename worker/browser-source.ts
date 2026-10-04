@@ -26,7 +26,7 @@ export async function mobileQueue(page: Page, target: Target): Promise<Queue> {
   if (!Array.isArray(processedSlugs) || processedSlugs.some(s => typeof s !== 'string')
     || new Set(processedSlugs).size !== processedSlugs.length) throw new BrowserStop('portfolio_progress_invalid');
   if (!Number.isInteger(processed) || !Number.isInteger(total) || processed < 0 || processed > total) throw new BrowserStop('portfolio_progress_invalid');
-  const title = card.locator('h2');
+  const title = card.locator('h2:visible');
   if (!await title.count()) {
     if (processed !== total) throw new BrowserStop('portfolio_copy_or_media_missing', target);
     return { target, handle, processed, total, processedSlugs, slug: null, title: null, mediaUrl: null, caption: null, prepared: false };
