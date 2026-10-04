@@ -26,7 +26,7 @@ export type Controls = {
   receiptTitle?: string; receiptSound?: string; receiptExpand?: string;
   flair?: string; flairOption?: string; flairReadback?: string;
   receiptDestination?: string;
-  musicOpen?: string; musicTrending?: string; musicRows?: string;
+  musicOpen?: string; musicTrending?: string; musicForYou?: string; musicRows?: string;
   musicName?: string; musicUse?: string; musicSelected?: string;
   musicClear?: string; musicEmpty?: string;
   readyMedia: string;
@@ -34,7 +34,7 @@ export type Controls = {
 };
 export type BrowserAccount = {
   handle: string; identityUrl: string; destination: string;
-  visibility: 'public'; musicPolicy: 'none' | 'random_trending_top10';
+  visibility: 'public'; musicPolicy: 'none' | 'random_trending_top10' | 'random_for_you_top10';
   disclosures?: { ownBrand: boolean; paidPartnership: boolean; aiGenerated: boolean };
   postType?: 'image' | 'text'; flair?: string | null;
   destinationByCategory?: Record<string, { destination: string; postType?: 'image' | 'text'; flair?: string | null }>;
@@ -59,7 +59,7 @@ export function readBrowserConfig(): BrowserConfig {
   for (const target of config.selected) {
     const account = config.accounts[target];
     if (!account || !/^(@|u\/)[a-zA-Z0-9_.-]+$/.test(account.handle)
-      || account.visibility !== 'public' || !['none', 'random_trending_top10'].includes(account.musicPolicy)) throw new Error('account_configuration_required');
+      || account.visibility !== 'public' || !['none', 'random_trending_top10', 'random_for_you_top10'].includes(account.musicPolicy)) throw new Error('account_configuration_required');
     const identity = new URL(account.identityUrl);
     if (identity.origin !== providerOrigins[target] || identity.username || identity.password) throw new Error('identity_origin_invalid');
     if (target.startsWith('pinterest')) {
