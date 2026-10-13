@@ -1,25 +1,20 @@
 --- a/worker/browser-provider.ts
 +++ b/worker/browser-provider.ts
-@@ -418,7 +418,7 @@
-           && currentURL.pathname === '/tiktokstudio/upload/post/photo' && !currentURL.search;
+@@ -419,5 +419,5 @@
          keepObservedComposer = currentURL.origin === expectedURL.origin
            && (currentURL.pathname === expectedURL.pathname && !currentURL.search || observedTikTokPhotoComposer)
 -          && await upload.count() === 1 && await upload.isVisible();
 +          && await upload.count() === 1 && (observedTikTokPhotoComposer || await upload.isVisible());
        } catch { keepObservedComposer = false; }
      } else if (target.startsWith('pinterest')) {
-       try {
-@@ -439,7 +439,7 @@
-       await newPost.click();
+@@ -440,5 +440,5 @@
        await page.locator(captionSelector).waitFor({ state: 'visible', timeout: 30_000 })
          .catch(() => { throw new BrowserStop('composer_not_loaded', target, captionSelector); });
 -    } else if (target.startsWith('tiktok')) {
 +    } else if (target.startsWith('tiktok') && !keepObservedComposer) {
        await page.goto(account.identityUrl, { waitUntil: 'domcontentloaded' });
        await assertSession(page, allowedProviderOrigins(target));
-       const uploadButton = page.getByRole('button', { name: 'Upload', exact: true }).filter({ visible: true });
-@@ -448,15 +448,22 @@
-       if (await uploadButton.count() !== 1) throw new BrowserStop('upload_navigation_unavailable', target, 'Upload button');
+@@ -449,13 +449,20 @@
        await uploadButton.click();
        await assertSession(page, allowedProviderOrigins(target));
 -      const photos = page.getByRole('tab', { name: 'Photos', exact: true }).filter({ visible: true });
@@ -49,9 +44,7 @@
 +      }
      } else if (!keepObservedComposer) await page.goto(composerURL, { waitUntil: 'domcontentloaded' });
      await assertSession(page, allowedProviderOrigins(target));
-     if (!target.startsWith('tiktok')) await waitForHydratedPage(page, allowedProviderOrigins(target), target);
-@@ -520,21 +527,18 @@
-     }
+@@ -521,19 +528,16 @@
      let existingDraftMedia = false;
      if (mediaPaths.length) {
 -      const previews = page.locator(controls.readyMedia);
@@ -80,57 +73,67 @@
 +      if (!existingDraftMedia) {
          if (target.startsWith('tiktok')) {
            const pageURL = new URL(page.url());
-           const selectPhotos = page.getByRole('button', { name: 'Select photos', exact: true }).filter({ visible: true });
 --- a/tests/browser-provider-ui.test.ts
 +++ b/tests/browser-provider-ui.test.ts
-@@ -36,7 +36,7 @@
- function fixtureHTML(unsavedPhotoPrompt = false, photosClickRemovesUploader = false, delayPhotoUploader = false, revealPhotoUploaderOnContinue = false) {
+@@ -37,5 +37,5 @@
    const uploaderStyle = delayPhotoUploader ? 'style="display:none"' : '';
    const continueAction = `this.parentElement.remove();${revealPhotoUploaderOnContinue ? "document.querySelector('#upload-button').style.display='block';" : ''}`;
 -  return `<html><body>${unsavedPhotoPrompt ? `<div id="unsaved-prompt"><span>You have an unsaved photo post. Continue editing?</span><button onclick="${continueAction}">Continue</button></div>` : ''}
 +  return `<html><head><title>TikTok Studio fixture</title></head><body><button onclick="location.href='/tiktokstudio/upload/post/photo'">Upload</button>${unsavedPhotoPrompt ? `<div id="unsaved-prompt"><span>You have an unsaved photo post. Continue editing?</span><button onclick="${continueAction}">Continue</button></div>` : ''}
      <tiktok-cookie-banner><button onclick="this.parentElement.style.display='none'">Decline optional cookies</button></tiktok-cookie-banner>
      <button role="tab" aria-selected="true" onclick="${photosClickRemovesUploader ? "window.photoTabClicks=(window.photoTabClicks||0)+1;document.querySelector('#upload-button').remove()" : ''}">Photos</button><button id="upload-button" aria-label="Add photo" ${uploaderStyle} onclick="document.querySelector('#upload').click()"></button><input type="file" id="upload" style="display:none">
-     <img id="preview" width="92" height="92" style="display:none;object-fit:cover"><input id="title"><textarea id="caption"></textarea>
-@@ -105,7 +105,7 @@
-     const item = { itemId: 'e'.repeat(64), target: 'tiktok_codeonroids', accountId: '@fixture',
+@@ -106,5 +106,5 @@
        payloadDigest: fingerprint(payload), payload } as BrowserItem;
      await provider.composer(item, account, null);
 -    assert.equal(composerNavigations, 1);
 +    assert.equal(composerNavigations, 2);
      assert.equal(await page.url(), 'https://www.tiktok.com/tiktokstudio/upload/post/photo');
      assert.equal(await page.getByRole('tab', { name: 'Photos', exact: true }).count(), 0);
-     assert.equal(await page.getByText('Photos', { exact: true }).count(), 1);
-@@ -164,7 +164,7 @@
-   const browser = await chromium.launch({ headless: true });
+@@ -138,4 +138,12 @@
+     assert.equal(await page.locator('#title').inputValue(), payload.title);
+     assert.equal(await page.locator('#caption').inputValue(), payload.caption);
++    // A resumed draft with visible foreign media must stop before another upload.
++    const different = await sharp({ create: { width: 30, height: 20, channels: 3, background: 'white' } }).png().toBuffer();
++    await page.locator('#preview').evaluate((element, encoded) => new Promise<void>(resolve => {
++      const image = element as HTMLImageElement; image.onload = () => resolve(); image.src = `data:image/png;base64,${encoded}`;
++    }), different.toString('base64'));
++    await assert.rejects(provider.composer(item, account, media), /existing_photo_draft_mismatch/);
++    assert.equal(await page.locator('#upload').evaluate(element => (element as HTMLInputElement).files?.length), 1);
++    assert.equal(await page.locator('#posted').innerText(), '');
+   } finally { await browser.close(); rmSync(directory, { recursive: true, force: true }); }
+ });
+@@ -158,4 +166,8 @@
+     assert.equal(await page.locator('#posted').innerText(), '');
+     assert.notEqual(fingerprint(payload), fingerprint({ ...payload, musicPolicy: 'random_trending_top10' }));
++    await page.goto('https://foreign.invalid/tiktokstudio/upload/post/photo');
++    await assert.rejects(provider.composer(item, account, null), /music_category_mismatch/);
++    assert.equal(await page.url(), 'https://www.tiktok.com/tiktokstudio/upload/post/photo');
++    assert.equal(await page.locator('#posted').innerText(), '');
+   } finally { await browser.close(); }
+ });
+@@ -165,5 +177,5 @@
    try {
      const page = await browser.newPage();
 -    await page.route('**/*', route => route.fulfill({ contentType: 'text/html', body: `<html><body>
 +    await page.route('**/*', route => route.fulfill({ contentType: 'text/html', body: `<html><head><title>Identity fixture</title></head><body>
        <div id="profile"></div><script>setTimeout(()=>document.querySelector('#profile').innerHTML='<a id="identity" href="/@fixture">fixture</a>',75)</script>
        </body></html>` }));
-     const sessions = new BrowserSessions(); sessions.identityPage = async () => page;
-@@ -239,7 +239,7 @@
-   const browser = await chromium.launch({ headless: true });
+@@ -240,5 +252,5 @@
    try {
      const page = await browser.newPage();
 -    await page.route('**/*', route => route.fulfill({ contentType: 'text/html', body: `<html><body>
 +    await page.route('**/*', route => route.fulfill({ contentType: 'text/html', body: `<html><head><title>Reddit fixture</title></head><body>
        <button id="type-text" aria-selected="false" onclick="this.setAttribute('aria-selected','true')">Text</button>
        <button id="type-image" aria-selected="false">Images</button><input id="title"><textarea id="caption"></textarea>
-       <span id="privacy">Public</span><button id="destination">Choose community</button>
 --- a/tests/browser-runner.test.ts
 +++ b/tests/browser-runner.test.ts
-@@ -176,6 +176,7 @@
-     assert.deepEqual(jobs.status('reconcile-control').result, {
+@@ -177,4 +177,5 @@
        status: 'stopped', reason: 'unexpected_ui', target: 'tiktok_personal',
        uiControl: '[data-e2e=video-music];count=0',
 +      errorName: 'Error', errorHint: 'unexpected_ui',
      });
    } finally { f.db.close(); }
- });
-@@ -213,9 +214,9 @@
-   assert.equal(mobileCaption('Raw compact #original', 'x'), 'Raw compact #original');
+@@ -214,7 +215,7 @@
  });
  test('fresh TikTok identity checks never navigate the composer page', () => {
 -  const stale = { url: () => 'https://www.tiktok.com/tiktokstudio' } as unknown as Page;
@@ -141,20 +144,16 @@
 +  const composer = { isClosed: () => false, url: () => 'https://www.tiktok.com/tiktokstudio/upload/post/photo' } as unknown as Page;
    assert.equal(selectAutomationPage([stale, identity, composer], 'https://www.tiktok.com', identity), composer);
    assert.equal(selectAutomationPage([identity], 'https://www.tiktok.com', identity), undefined);
- });
 --- a/tests/browser-source-ui.test.ts
 +++ b/tests/browser-source-ui.test.ts
-@@ -21,7 +21,7 @@
-     data-archive-post-id="id-${index}" data-archive-published-at="2026-01-0${index}T00:00:00Z">
+@@ -22,5 +22,5 @@
      <div data-slot="card-description">/fixture-${index}</div><div data-slot="card-title">Fixture ${index}</div>
      <span>Long: approved</span><div role="tablist"><button role="tab" onclick="this.parentElement.parentElement.querySelector('pre').innerText='Approved fixture ${index}'">Long social post</button></div>
 -    <pre>Published: Jan ${index}, 2026\nURL: https://www.razvantodica.com/blog/fixture-${index}</pre></div>`).join('')}</body></html>`;
 +    <div role="tabpanel" data-state="active"><pre>Published: Jan ${index}, 2026\nURL: https://www.razvantodica.com/blog/fixture-${index}</pre></div></div>`).join('')}</body></html>`;
  }
  test('Playwright UI discovery respects noncontiguous ledger slugs with no mutation or external network', async () => {
-   const browser = await chromium.launch({ headless: true });
-@@ -97,7 +97,10 @@
-     assert.equal(requests.filter(method => method === 'POST').length, 2);
+@@ -98,5 +98,8 @@
      assert.deepEqual(await source.sync(item, url, null, 'fixture-sync'), { syncKey: 'fixture-sync', externalUrl: url, result: 'posted' });
      assert.equal(requests.filter(method => method === 'POST').length, 2);
 -    await assert.rejects(source.sync(item, url, null, 'wrong-sync'), /source_url_readback_unavailable/);
@@ -164,4 +163,3 @@
 +    assert.equal(requests.filter(method => method === 'POST').length, 2);
    } finally { await browser.close(); }
  });
- 

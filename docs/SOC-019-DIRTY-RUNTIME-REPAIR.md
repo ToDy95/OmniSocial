@@ -26,6 +26,8 @@ archive panels and the Page.isClosed method. Reconcile assertions include the
 actual structured diagnostics. Saved-receipt recovery across local synchronization
 keys requires the exact article, account target, posted result and URL; the test
 still rejects a different public URL and proves no duplicate POST occurs.
+Composer regressions also prove that a foreign-origin photo editor is never
+reused and visible wrong media stops without another upload or submit click.
 
 No test is removed, skipped or renamed. The fix does not enable a worker, browser
 profile, scheduler, publication, source writeback or new account mapping.
@@ -40,7 +42,9 @@ node scripts/apply-dirty-runtime-repair.ts /absolute/path/to/owner-checkout --ap
 ```
 
 The first command checks only. Both refuse mismatched input hashes, mixed partial
-states, symbolic-link targets or a changed artifact. An already installed exact
+states, symbolic-link targets or a changed artifact. The installer derives all
+patched outputs in temporary staging and validates their manifest hashes before
+any target write, then checks the target input hashes again. An already installed exact
 output returns `already_installed` without mutation. Back up the four source
 files before applying; neither command touches runtime journals or credentials.
 
@@ -49,6 +53,9 @@ network responses. The isolated owner snapshot retains every original 60 tests;
 the merged main's six SOC-018 media-cache tests add six independent checks. The
 combined snapshot passed 66/66 before release. Exact owner installation and clean
 main validation are recorded separately in the final release receipt.
+Four installer tests cover no-write checks, successful installation and replay,
+corrupt output hashes rejected before mutation, partial/base drift, symbolic
+links and tampered patch bytes.
 
 This is a patch-artifact repository release and a bounded local source repair.
 It is not a merge of Reach, a hosted deployment or a public social receipt. The

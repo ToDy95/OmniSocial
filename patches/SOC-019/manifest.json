@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "milestone": "SOC-019",
-  "patchSha256": "69a401c25ca00a9f28bcc99c371e5759ef5b8c6a97aa74fa8a4b02dc2473bce9",
+  "patchSha256": "bd264eac9909c99c654dfc136e832047c1ac5a0190aa60da0f308ac3c11ce434",
   "files": [
     {
       "path": "worker/browser-provider.ts",
@@ -11,7 +11,7 @@
     {
       "path": "tests/browser-provider-ui.test.ts",
       "beforeSha256": "ee6aae0f055f33889faea95aec0100fdddb7a67edec30ac2f5077581b4d71e58",
-      "afterSha256": "ee970c1eb0b359a2e4abb1c8e2b265e2243b321659fef41fe4f9cad63f1646ef"
+      "afterSha256": "288e3bc1dea8d2bef4d339ba6bf1d22136462cac9e17dea3bb403e5716b1470c"
     },
     {
       "path": "tests/browser-runner.test.ts",
