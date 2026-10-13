@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
 import { createHash } from 'node:crypto';
-import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { downloadMedia } from '../worker/media.ts';
@@ -84,5 +84,15 @@ test('failed shared downloads are not retained and a later request can recover',
     assert.equal(calls, 1);
     await downloadMedia(f.url, [origin], f.directory, request);
     assert.equal(calls, 2);
+  } finally { rmSync(f.directory, { recursive: true, force: true }); }
+});
+
+test('an immutable-media caller directory cannot be a symbolic link', async () => {
+  const f = await fixture();
+  try {
+    const link = join(f.directory, 'linked-root');
+    symlinkSync(f.directory, link, 'dir');
+    await assert.rejects(downloadMedia(f.url, [origin], link, f.request), /Unsafe local directory/);
+    assert.equal(f.calls(), 0);
   } finally { rmSync(f.directory, { recursive: true, force: true }); }
 });

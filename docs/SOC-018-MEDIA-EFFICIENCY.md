@@ -34,7 +34,7 @@ for cross-origin reuse. Cache-first does not substitute for fresh source approva
 
 ## Evidence and release
 
-Pinned Node 24.21.0 passed strict TypeScript and all 49 tests, including Playwright
+Pinned Node 24.21.0 passed strict TypeScript and all 50 tests, including Playwright
 fixtures. Media tests cover concurrent one-fetch operation, warm zero-fetch reuse,
 origin/path/directory isolation, private/signed/query fetches, revoked private URLs,
 unsafe files, hash mismatches, decoded corruption and error recovery. An isolated

@@ -47,6 +47,7 @@ export async function downloadMedia(urlValue: string, allowedOrigins: string[], 
     || !allowedOrigins.every(origin => /^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(origin) || origin === 'https://www.razvantodica.com')) throw new Error('media_origin_forbidden');
   const expectedHash = immutablePublicHash(url);
   if (!expectedHash) return downloadMediaBytes(url, directory, request);
+  protectDirectory(resolve(directory));
   const scope = createHash('sha256').update(`${url.origin}${url.pathname}`).digest('hex');
   const scopedDirectory = join(resolve(directory), `public-${scope}`);
   let requests = pending.get(request);

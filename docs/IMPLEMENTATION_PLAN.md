@@ -518,7 +518,7 @@ those workflows. SOC-018 is allocated for the separately authorized efficiency w
 
 | ID | Scope and dependency | Acceptance / exit evidence | Status |
 | --- | --- | --- | --- |
-| SOC-018 | Immutable public media reuse without caching source approval or delivery state | Verified content-addressed public cache, bounded concurrent download reuse, private/signed network authorization, isolated health and repository release | Implemented and verified with strict TypeScript, 49 tests and an isolated read-only health worker. One public image measured 198,812 cold bytes and zero warm network bytes. Local runtime deployment is tracked separately. See [media efficiency](SOC-018-MEDIA-EFFICIENCY.md). |
+| SOC-018 | Immutable public media reuse without caching source approval or delivery state | Verified content-addressed public cache, bounded concurrent download reuse, private/signed network authorization, isolated health and repository release | Implemented and verified with strict TypeScript, 50 tests and an isolated read-only health worker. One public image measured 198,812 cold bytes and zero warm network bytes. Local runtime deployment is tracked separately. See [media efficiency](SOC-018-MEDIA-EFFICIENCY.md). |
 
 The next unreserved candidate after this release is SOC-019; audit all refs before allocation.
 
