@@ -65,7 +65,10 @@ export async function downloadMedia(urlValue: string, allowedOrigins: string[], 
 
 async function downloadMediaBytes(url: URL, directory: string, request: typeof fetch, expectedHash?: string): Promise<Media> {
   const response = await request(url, { redirect: 'manual', signal: AbortSignal.timeout(30_000) });
-  if (response.status !== 200 || !response.body) throw new Error('media_download_failed');
+  if (response.status !== 200 || !response.body) {
+    await response.body?.cancel();
+    throw new Error('media_download_failed');
+  }
   const length = Number(response.headers.get('content-length') ?? 0);
   if (length > maxBytes) { await response.body.cancel(); throw new Error('media_size_invalid'); }
   const reader = response.body.getReader(), chunks: Uint8Array[] = [];
