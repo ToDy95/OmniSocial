@@ -512,7 +512,15 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 SOC-015 follow-up: the distinct `random_for_you_top10` policy is implemented.
 All 44 local tests, including nine Playwright UI fixtures, and strict TypeScript
 pass. Provider selector calibration and a live n8n end-to-end run remain pending.
-No new milestone is allocated; the next candidate remains SOC-016.
+SOC-016 Reach publishing and SOC-017 recurring publication are reserved in the owner's
+original dirty checkout. This release preserves that work without changing or enabling
+those workflows. SOC-018 is allocated for the separately authorized efficiency work.
+
+| ID | Scope and dependency | Acceptance / exit evidence | Status |
+| --- | --- | --- | --- |
+| SOC-018 | Immutable public media reuse without caching source approval or delivery state | Verified content-addressed public cache, bounded concurrent download reuse, private/signed network authorization, isolated health and repository release | Implemented and verified with strict TypeScript, 49 tests and an isolated read-only health worker. One public image measured 198,812 cold bytes and zero warm network bytes. Local runtime deployment is tracked separately. See [media efficiency](SOC-018-MEDIA-EFFICIENCY.md). |
+
+The next unreserved candidate after this release is SOC-019; audit all refs before allocation.
 
 During implementation, maintain a capability matrix per account: transport,
 source/device checks, fixture validation, real-pilot evidence, and enablement
