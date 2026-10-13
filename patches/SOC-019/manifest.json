@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "milestone": "SOC-019",
+  "patchSha256": "69a401c25ca00a9f28bcc99c371e5759ef5b8c6a97aa74fa8a4b02dc2473bce9",
+  "files": [
+    {
+      "path": "worker/browser-provider.ts",
+      "beforeSha256": "0dcd41d2b7338c468f8a5f2232ce0e3ab06c93d9f5e7f1aeba66ae93cf8ae348",
+      "afterSha256": "0aa5089e222c5b650d0a33ced78dfd3eb4d0cd5250dc13236f9b6a56f51bb17c"
+    },
+    {
+      "path": "tests/browser-provider-ui.test.ts",
+      "beforeSha256": "ee6aae0f055f33889faea95aec0100fdddb7a67edec30ac2f5077581b4d71e58",
+      "afterSha256": "ee970c1eb0b359a2e4abb1c8e2b265e2243b321659fef41fe4f9cad63f1646ef"
+    },
+    {
+      "path": "tests/browser-runner.test.ts",
+      "beforeSha256": "4cb49db89b8528d7b950b83e590b9f250ca2daef46652b0d089a34d8697c3a00",
+      "afterSha256": "053e475345c50d765c592ff88a2c14c7883eb02a62dce24965bd6795484a1ebb"
+    },
+    {
+      "path": "tests/browser-source-ui.test.ts",
+      "beforeSha256": "5d81a78bb9017182e2e71e4d7d25a41aeb90d0f676a26ff5d4b9aefb28ad7e9d",
+      "afterSha256": "d84873b8b88ccb8fd0dbb9ce5bad0882685118802da11216f4c7f5b670eedc6e"
+    }
+  ]
+}

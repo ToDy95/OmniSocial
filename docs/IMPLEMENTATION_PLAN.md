@@ -519,8 +519,9 @@ those workflows. SOC-018 is allocated for the separately authorized efficiency w
 | ID | Scope and dependency | Acceptance / exit evidence | Status |
 | --- | --- | --- | --- |
 | SOC-018 | Immutable public media reuse without caching source approval or delivery state | Verified content-addressed public cache, bounded concurrent download reuse, private/signed network authorization, isolated health and repository release | Implemented and verified with strict TypeScript, 50 tests and an isolated read-only health worker. One public image measured 198,812 cold bytes and zero warm network bytes. Local runtime deployment is tracked separately. See [media efficiency](SOC-018-MEDIA-EFFICIENCY.md). |
+| SOC-019 | Repair eleven failures exclusive to the owner's existing dirty browser runtime | Exact SHA-256-locked patch, three photo-composer defects, current synthetic fixture contracts, no unrelated Reach integration or activation | Reserved after auditing fresh origin refs and all SOC commit subjects: SOC-018 is the Git maximum. Isolated owner snapshot plus six merged cache tests passes 66/66; clean main passes 50/50. Independent review, repository delivery and exact owner installation are recorded separately. See [bounded dirty runtime repair](SOC-019-DIRTY-RUNTIME-REPAIR.md). |
 
-The next unreserved candidate after this release is SOC-019; audit all refs before allocation.
+The next unreserved candidate after this release is SOC-020; audit all refs before allocation.
 
 During implementation, maintain a capability matrix per account: transport,
 source/device checks, fixture validation, real-pilot evidence, and enablement
