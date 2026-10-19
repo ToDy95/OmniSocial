@@ -103,7 +103,6 @@ rights; no random trending track selection is implemented.
 
 - [TikTok sharing guidelines](https://developers.tiktok.com/docs/en/content-sharing-guidelines): private account-management utilities fail Direct Post intended-use criteria; unaudited posting has private restrictions. Photo API capability does not establish this project's eligibility.
 - [TikTok commercial music](https://ads.tiktok.com/resources/help/article/commercial-music-library): general music library is unavailable for business commercial use; use eligible commercial audio.
-- [X automation rules](https://help.x.com/en/rules-and-policies/x-automation): non-API website scripting is prohibited. Owner-operated composer remains the fallback.
 - [Reddit Responsible Builder Policy](https://support.reddithelp.com/hc/en-us/articles/42728983564564-Responsible-Builder-Policy): explicit API approval is required, with additional commercial-use requirements; no application or duplicate request submitted.
 - [Pinterest official OpenAPI](https://github.com/pinterest/api-description/blob/main/v5/openapi.yaml): `POST /pins` creates original owner content on an owned board/section; schema includes media source and board; documented OAuth scopes include boards and pins access. This proves a provider operation exists, not owner entitlement. The rendered developer endpoint did not expose its full contract, so the official schema was inspected instead.
 

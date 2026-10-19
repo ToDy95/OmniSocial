@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { BrowserRunner, type PublishingBackend, type Prepared } from '../worker/browser-runner.ts';
 import { BrowserJobs } from '../worker/browser-jobs.ts';
-import { BrowserAPI } from '../worker/browser-api.ts';
-import { BrowserSessions, BrowserStop } from '../worker/browser-session.ts';
-import { BrowserProvider, receiptURL, sameIdentity, imageDistance } from '../worker/browser-provider.ts';
+import { BrowserAPI, validInspectionView } from '../worker/browser-api.ts';
+import { BrowserSessions, BrowserStop, selectAutomationPage } from '../worker/browser-session.ts';
+import type { Page } from 'playwright';
+import { BrowserProvider, destinationName, pinterestBoardPinHrefMatches, receiptURL, sameIdentity, imageDistance } from '../worker/browser-provider.ts';
 import { mobileCaption, type BrowserItem } from '../worker/browser-source.ts';
 import type { BrowserConfig } from '../worker/browser-config.ts';
 import { createWorker } from '../worker/server.ts';
@@ -15,6 +16,18 @@ import { fingerprint, type Target } from '../worker/planner.ts';
 import sharp from 'sharp';
 
 const now = '2026-01-10T00:00:00.000Z';
+test('Pinterest board display names match their URL slugs when spacing differs', () => {
+  assert.equal(destinationName('Code On Roids'), 'codeonroids');
+  assert.equal(destinationName('CodeOnRoids'), 'codeonroids');
+});
+test('Pinterest board membership accepts the exact Pin ID across regional absolute and relative links', () => {
+  const id = '1127870300489651758', origins = ['https://www.pinterest.com', 'https://ro.pinterest.com'];
+  assert.equal(pinterestBoardPinHrefMatches(`/pin/${id}/`, id, origins), true);
+  assert.equal(pinterestBoardPinHrefMatches(`https://ro.pinterest.com/pin/${id}/`, id, origins), true);
+  assert.equal(pinterestBoardPinHrefMatches(`/pin/${id}/analytics`, id, origins), false);
+  assert.equal(pinterestBoardPinHrefMatches('/pin/1127870300489651759/', id, origins), false);
+  assert.equal(pinterestBoardPinHrefMatches(`https://example.com/pin/${id}/`, id, origins), false);
+});
 function fixture() {
   const db = new DatabaseSync(':memory:');
   db.exec('CREATE TABLE runtime_metadata(key TEXT PRIMARY KEY,value TEXT NOT NULL)');
@@ -24,6 +37,7 @@ function fixture() {
   const manifest = { ...body, manifestId: fingerprint(body), digest: fingerprint(body) };
   const calls: string[] = [];
   let failure = '';
+  let failBeforeClick = false;
   let stopComposer = false;
   const config = { schemaVersion: 1, owner: manifest.owner, selected: manifest.targetOrder, cap: manifest.cap,
     accounts: Object.fromEntries(manifest.accounts.map(a => [a.target, { handle: a.accountId }])) } as BrowserConfig;
@@ -33,7 +47,7 @@ function fixture() {
     async prepare(item) { calls.push(`prepare:${item.target}`); },
     async media() { return null; },
     async composer(item) { calls.push(`composer:${item.target}`); if (stopComposer) operations.stop('fixture-run'); return { sound: null }; },
-    async submit(item, _config, _prepared, beforeClick) { beforeClick(); calls.push(`submit:${item.target}`); if (failure === 'submit') throw new Error('response_lost'); },
+    async submit(item, _config, _prepared, beforeClick) { if (failBeforeClick) throw new BrowserStop('unexpected_ui', item.target, '[contenteditable=true][role=combobox];count=0'); beforeClick(); calls.push(`submit:${item.target}`); if (failure === 'submit') throw new Error('response_lost'); },
     async result(item) { return item.target.startsWith('tiktok') ? 'https://www.tiktok.com/@fixture/photo/1'
       : item.target === 'x' ? 'https://x.com/fixture/status/1'
       : item.target === 'reddit' ? 'https://www.reddit.com/r/fixture/comments/abc/title/' : 'https://www.pinterest.com/pin/1/'; },
@@ -46,7 +60,8 @@ function fixture() {
   operations.saveManifest(manifest);
   db.prepare('INSERT INTO browser_choices VALUES(?,?)').run(manifest.manifestId, JSON.stringify(config));
   operations.approve(manifest.manifestId, manifest.owner, manifest.digest, now);
-  return { db, operations, runner, backend, config, manifest, calls, setFailure: (value: string) => { failure = value; }, stopComposer: () => { stopComposer = true; } };
+  return { db, operations, runner, backend, config, manifest, calls, setFailure: (value: string) => { failure = value; },
+    failBeforeClick: () => { failBeforeClick = true; }, stopComposer: () => { stopComposer = true; } };
 }
 test('real orchestration contract is sequential and dry planning never submits, prepares or synchronizes', async () => {
   const f = fixture();
@@ -78,6 +93,34 @@ test('uncertain submission stops the lot and reconciliation has no submission ca
     await f.runner.reconcile('fixture-run', item.itemId, 'https://www.tiktok.com/@fixture/photo/1');
     assert.equal(f.calls.filter(c => c.startsWith('submit:')).length, 1);
     assert.equal(f.operations.attempt('fixture-run', item.itemId).state, 'completed');
+  } finally { f.db.close(); }
+});
+test('pre-click UI failure is safely retryable and legacy false uncertainty requires exact journal proof', async () => {
+  const f = fixture();
+  try {
+    f.failBeforeClick();
+    const stopped = await f.runner.publish('fixture-run', f.manifest.manifestId, f.manifest.digest);
+    const item = f.manifest.items[0] as BrowserItem;
+    assert.equal(stopped.status, 'stopped');
+    assert.equal(f.operations.attempt('fixture-run', item.itemId).state, 'failed_before_submit');
+    assert.equal(f.calls.some(c => c.startsWith('submit:')), false);
+    f.operations.release('fixture-run');
+
+    const oldRun = f.operations.openRun('legacy-run', f.manifest.manifestId, now);
+    f.operations.prepare('legacy-run', item.itemId, oldRun.fence, now);
+    f.operations.submitting('legacy-run', item.itemId, oldRun.fence, now,
+      { accountId: item.accountId, payloadDigest: item.payloadDigest });
+    f.operations.unknown('legacy-run', item.itemId);
+    f.db.exec('CREATE TABLE browser_jobs(id TEXT PRIMARY KEY,operation TEXT NOT NULL,input_digest TEXT NOT NULL,state TEXT NOT NULL,output TEXT)');
+    f.db.prepare('INSERT INTO browser_prepared VALUES(?,?,?,NULL)').run('legacy-run', item.itemId, null);
+    const output = { status: 'stopped', runId: 'legacy-run', reason: 'unexpected_ui',
+      uiControl: '[contenteditable=true][role=combobox];count=0',
+      report: { run: { id: 'legacy-run', manifest_id: f.manifest.manifestId },
+        attempts: [{ run_id: 'legacy-run', item_id: item.itemId, state: 'submission_unknown' }] } };
+    f.db.prepare('INSERT INTO browser_jobs VALUES(?,?,?,?,?)').run('browser-legacy', 'publish', fingerprint({}), 'finished', JSON.stringify(output));
+    assert.equal((await f.runner.reconcile('legacy-run', item.itemId)).status, 'failed_before_submit_confirmed');
+    assert.equal(f.operations.attempt('legacy-run', item.itemId).state, 'failed_before_submit');
+    assert.throws(() => f.operations.provePreClickFailure('legacy-run', item.itemId), /attempt_not_reconcilable/);
   } finally { f.db.close(); }
 });
 test('known receipt survives source failure and reconciliation retries only synchronization', async () => {
@@ -122,6 +165,21 @@ test('durable browser jobs replay the same operation and restart never resumes w
     assert.equal(new BrowserJobs(f.db).status('crashed').state, 'interrupted');
   } finally { f.db.close(); }
 });
+test('durable reconcile jobs preserve a safe UI-control hint for stopped browser verification', async () => {
+  const f = fixture();
+  try {
+    const jobs = new BrowserJobs(f.db);
+    jobs.start('reconcile-control', 'reconcile', {}, async () => {
+      throw new BrowserStop('unexpected_ui', 'tiktok_personal', '[data-e2e=video-music];count=0');
+    });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(jobs.status('reconcile-control').result, {
+      status: 'stopped', reason: 'unexpected_ui', target: 'tiktok_personal',
+      uiControl: '[data-e2e=video-music];count=0',
+      errorName: 'Error', errorHint: 'unexpected_ui',
+    });
+  } finally { f.db.close(); }
+});
 test('HTTP browser operations are authenticated, bounded and require the exact owner approval', async () => {
   const f = fixture();
   const api = new BrowserAPI(new BrowserJobs(f.db), f.runner, new BrowserSessions());
@@ -154,6 +212,19 @@ test('receipt URL and identity validators reject foreign providers, wrong accoun
   assert.equal(sameIdentity('https://www.tiktok.com/@other', '@fixture'), false);
   assert.match(mobileCaption('Approved body\n\n#old\n\nMore of the work behind the work: https://old.invalid', 'tiktok_codeonroids'), /#softwaredeveloper/);
   assert.equal(mobileCaption('Raw compact #original', 'x'), 'Raw compact #original');
+});
+test('fresh TikTok identity checks never navigate the composer page', () => {
+  const stale = { isClosed: () => false, url: () => 'https://www.tiktok.com/tiktokstudio' } as unknown as Page;
+  const identity = { isClosed: () => false, url: () => 'https://www.tiktok.com/tiktokstudio' } as unknown as Page;
+  const composer = { isClosed: () => false, url: () => 'https://www.tiktok.com/tiktokstudio/upload/post/photo' } as unknown as Page;
+  assert.equal(selectAutomationPage([stale, identity, composer], 'https://www.tiktok.com', identity), composer);
+  assert.equal(selectAutomationPage([identity], 'https://www.tiktok.com', identity), undefined);
+});
+test('read-only post history inspection is scoped to TikTok targets', () => {
+  assert.equal(validInspectionView('tiktok_personal', 'posts'), true);
+  assert.equal(validInspectionView('tiktok_codeonroids', 'posts'), true);
+  assert.equal(validInspectionView('pinterest_personal', 'posts'), false);
+  assert.equal(validInspectionView('tiktok_personal', 'arbitrary-url'), false);
 });
 test('image verification accepts a resized image and rejects a different fixture', async () => {
   const pixels = Buffer.from(Array.from({ length: 30 * 20 * 3 }, (_, index) => (index * 37) % 256));

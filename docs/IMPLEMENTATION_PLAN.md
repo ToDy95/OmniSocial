@@ -5,9 +5,10 @@ Date: 2026-10-03. Timezone for operator-facing dates: Europe/Bucharest.
 Status: SOC-001 through SOC-012 are squash-merged into main after explicit owner
 authorization. Local fixture runtime, finite batch, recovery and type checks pass;
 the authenticated local portfolio export is verified. SOC-013 records delivery
-evidence in [the merge audit](DELIVERY-AUDIT.md). Real account/device/destination
-checks, guarded live orchestration, receipt-bound portfolio writeback and an
-exactly approved pilot remain open. Real publication stays disabled; V2 is deferred.
+evidence in [the merge audit](DELIVERY-AUDIT.md). The owner-authorized daily
+heartbeat is active under SOC-017; current account sessions, per-target transport,
+and scheduled publication receipts remain unverified. V1 readiness is not claimed;
+V2 is deferred.
 
 ## 1. Goal and scope
 
@@ -23,6 +24,34 @@ CAPTCHA/MFA/login expiry, and receipt verification before portfolio writeback.
 This documentation change does not enable submission or establish that the live
 browser runner is implemented or validated.
 
+### Owner standing schedule authorization — 2026-10-12
+
+The owner authorized a recurring local publishing job at 17:00 Europe/Bucharest
+for TikTok Personal, TikTok Business, Pinterest Personal, Pinterest Business, X,
+and Reddit, in that order. This standing authorization supersedes the manual
+per-run start and approval requirements, and the earlier exclusion of schedules,
+only within these six existing account mappings. Each run reads the current
+`/admin/mobile` and blog state, freezes a finite manifest of eligible,
+already-published articles before submission, and uses existing platform copy,
+media, destinations, and account-specific history. Newly published eligible
+articles may enter the next day's manifest. Do not create accounts, generate new
+media, or perform engagement actions under this authorization.
+
+The schedule is standing approval for those eligibility rules and fixed targets;
+per-item confirmation is not required. Keep account identity checks, duplicate
+reconciliation, supported pacing, public-receipt verification, and source
+writeback. A blocked or uncertain target must not stop the other independent
+targets unless the shared runtime is unavailable. CAPTCHA, MFA, and expired
+login remain interactive stops. Pinterest copy must stay within the owner's
+280-character limit. X publishing automation must use the official API; do not
+script the X website. Put the canonical article URL in the X post and verify
+that the website preview card image opens that article; never substitute a
+separately attached cover image for that card.
+
+The daily Codex heartbeat is configured, but its active status is not evidence
+that the worker integration, account sessions, or any public publication has
+been verified.
+
 Reduce the owner's daily work distributing already published portfolio articles
 and approved social copy through https://www.razvantodica.com/admin/mobile.
 Preserve the familiar two-tab handoff: the portfolio page selects the destination
@@ -37,16 +66,17 @@ the run manifest. Work is sequential; one article can have independent outcomes
 for different accounts. A run ends when its frozen manifest is exhausted, not
 when a live page happens to offer more newly created content.
 
-Included: manual start, account/session checks, source discovery, preparation,
+Included: manual or owner-scheduled start, account/session checks, source discovery, preparation,
 approved title/caption/media, platform routing, permitted submission or assisted
 handoff, receipt verification, portfolio result recording, restart-safe recovery,
-pause/cancel, and local reports. Initial format is a blog article with cover image
-and platform copy. Reach packs, video production, carousels, and new AI generation
-are additional scope and require later explicit decisions.
+pause/cancel, and local reports. The initial format is a blog article with cover
+image and platform copy. Reach packs, video production, carousels, and new AI
+generation were separate scope. On 2026-10-06, the owner explicitly started
+SOC-016 for existing multi-image Reach packs; it does not authorize new generation.
 
 Excluded: a new public app, a hosted social-account database, bulk scraping,
-schedules, autonomous engagement, mass replies, DMs, likes/follows, paid generation,
-social analytics dashboards, and implementation of V2.
+autonomous engagement, mass replies, DMs, likes/follows, paid generation, social
+analytics dashboards, and implementation of V2.
 
 ## 2. Evidence and feasibility baseline
 
@@ -80,14 +110,15 @@ available; a changed handle requires explicit mapping reconciliation.
 
 ### Platform transport decisions
 
-No blanket promise of unattended publication on all six targets is made.
-SOC-002 must assign each account a supported, assisted, or blocked transport.
-Manual start does not override platform restrictions.
+The owner-authorized schedule covers all six targets, but each target still
+requires a configured transport permitted by the platform. A target without a
+working eligible transport is blocked for that run while independent targets
+continue. The schedule does not override platform restrictions.
 
 | Platform | V1 decision and gate |
 | --- | --- |
 | TikTok Personal/Business | Validate the actual photo + title + caption + music workflow on the chosen device. Direct Post guidelines reject private utilities limited to an owner's/team's accounts, so Direct Post is not the assumed solution for this project. Evaluate an eligible approved integration or owner-operated native handoff; website automation requires affirmative policy and capability evidence. |
-| X | Website scripting is prohibited by X automation rules. Use an authorized API adapter if available, or an owner-operated composer handoff. No automatic X website clicks. Verify access, costs, media support, and rate limits before enabling the API path. |
+| X | Scheduled publishing stays blocked until its configured transport is ready; continue to Reddit when blocked. Put the canonical article URL in the post and verify that the preview card opens the article. |
 | Reddit | API use requires explicit approval under the Responsible Builder Policy. Confirm current approval and terms, and owner-reviewed subreddit rules. Without eligible access, retain an owner-operated submission handoff; do not work around rejected access through scraping or hidden endpoints. |
 | Pinterest Personal/Business | Check each account's app/OAuth access, accepted use case, board permissions, and Pin creation support. Prefer an eligible official adapter; retain owner-operated Pin builder handoff otherwise. Login or stored boards alone do not establish API approval. |
 
@@ -143,6 +174,11 @@ execution data with n8n workflow JSON.
 
 ## 4. Run approval and job contracts
 
+The standing schedule authorization above is the owner approval for its fixed
+scope. A scheduled run creates and freezes its own exact manifest and may publish
+without a per-run confirmation. The manual n8n entry points below remain available
+for work outside that scope and still require their explicit manifest approval.
+
 Two distinct manual entry points are planned: Plan/Dry Run and Publish Approved
 Manifest. Executing Plan is not publication approval. In Publish, the owner
 confirms a frozen manifest ID and digest, mode, exact accounts/posts, per-account
@@ -158,6 +194,8 @@ digest, owner, account scope, and expiry. Do not put approvals or resume tokens 
 committed examples. Initially propose an approval expiry of 60 minutes, confirmed
 at implementation. Waits and timeouts never create approval. Revalidate after a
 restart or long pause; expired authorization requires a new explicit start.
+The scheduled entry point sets publish mode only while its owner-authorized
+schedule is active and the generated manifest remains within the fixed scope.
 
 | Record | Minimum fields |
 | --- | --- |
@@ -175,6 +213,13 @@ Keys must remain stable on request retry; n8n execution IDs alone are not delive
 keys across manual reruns. Store the result before responding to a repeated call.
 
 ## 5. End-to-end operator flow
+
+At 17:00 Europe/Bucharest, the active scheduled entry point checks the six targets
+in the owner's fixed order, compares each account's public history with the
+current source ledger, freezes that target's eligible backlog, and publishes it
+under the standing authorization. It records and reads back receipts before
+advancing. A target-specific stop is reported and the next independent target is
+attempted; an uncertain item is never retried until reconciled.
 
 1. Owner starts Plan/Dry Run in n8n with selected accounts, caps, and date range.
 2. Check worker health, source login, platform identity/eligibility, current
@@ -411,8 +456,9 @@ Set child-workflow input schemas and Wait for Sub-Workflow Completion=true. Keep
 publication request retries off. Retrying a job-creation call is allowed only
 when the worker's operation key guarantees the same job/result; provider-submit
 retries are never delegated to n8n blindly. Save sufficient redacted manual-run
-data for diagnosis and configure explicit pruning. No Schedule Trigger, event
-watcher, or publicly callable publication trigger is part of V1.
+data for diagnosis and configure explicit pruning. The existing n8n workflow set
+remains manual; the owner-authorized daily job runs through the local Codex
+heartbeat. No publicly callable publication trigger is part of V1.
 
 ## 8. Proposed worker boundary
 
@@ -479,15 +525,18 @@ sound, board, subreddit, timestamps, and pending portfolio sync where relevant.
 Do not count submitted_pending_review as public or count a manual handoff as an
 automated publication. CSV rows and JSON records share the same stable item ID.
 
-The operator procedure is: start local services -> check sessions -> Plan ->
-review exact manifest -> Publish -> handle requested native steps -> inspect
-report -> manually Reconcile pending cases. A later run discovers new eligible
-work afresh. Reports are local; sending email/Slack/DM notifications is separate
-scope. Sessions can be revoked locally; metadata never stores passwords.
+For scheduled publishing, the operator procedure is: keep the protected local
+runtime available -> let the 17:00 job check sessions, reconcile progress, freeze
+and publish the eligible manifest -> inspect the per-target report and resolve
+interactive authentication or uncertain submissions. The existing manual
+procedure remains: start local services -> check sessions -> Plan -> review the
+exact manifest -> Publish -> inspect report -> Reconcile pending cases. Reports
+are local; sending email/Slack/DM notifications is separate scope. Sessions can
+be revoked locally; metadata never stores passwords.
 
 ## 11. Milestones and delivery order
 
-SOC-001 through SOC-015 are allocated after Git audits. Later IDs are proposed
+SOC-001 through SOC-016 are allocated after Git audits. Later IDs are proposed
 roadmap reservations; audit all refs before allocating each new task. Split an
 oversized milestone if needed and update the roadmap rather than reuse IDs.
 
@@ -507,7 +556,9 @@ oversized milestone if needed and update the roadmap rather than reuse IDs.
 | SOC-012 | V1 readiness audit, runbook, recovery rehearsal and report review | Failure/security/replay cases pass, documentation matches actual capabilities, unsupported targets clearly assisted/blocked, owner accepts operating procedure | Local audit/runbook and strict worker/script type checking implemented; 23 fixtures passed. [Readiness matrix](V1-READINESS.md) records live source, real guarded orchestration/writeback, pilot and owner acceptance gates. Full V1 not ready. |
 | SOC-013 | Delivery reconciliation after owner-authorized merges | One squash commit per feature milestone, resulting main trees match reviewed branches, current documentation separates merges from live acceptance | [Delivery audit](DELIVERY-AUDIT.md) records merged SOC-001 through SOC-012 and portfolio TOD-126, passing checks, preserved local work and remaining owner inputs. Documentation only. |
 | SOC-014 | Desktop photo handoff and independent account progress | Fresh per-account desktop capability gate, protected source progress report, preparation distinct from public receipts | [Desktop and progress record](SOC-014-DESKTOP-PROGRESS.md) documents observed Business Photos support, owner board locators and remaining integration gates. Assisted handoff only; no real submission. |
-| SOC-015 | Owner-requested Playwright UI execution and manual n8n orchestration | UI source discovery, protected profiles, exact approval, sequential submit/receipt/writeback, restart-safe reconciliation and fixed private operations | [Browser execution](SOC-015-PLAYWRIGHT.md) implemented and validated with 42 local tests, including seven Playwright UI fixtures, and strict TypeScript. Two inactive manual n8n workflows imported and read back. Dedicated portfolio and both TikTok logins confirmed across a worker restart; fixed read-only inspection added and composer hydration wait corrected. Google popup closure fixed with a manual-only exact OAuth origin allowance. Portfolio TOD-127 production release and one separately approved Playwright pilot with public receipt and cloud ledger readback verified. Result forms now bind the exact target independently of Reach forms. General runner For You policy/selectors, remaining providers and a live n8n end-to-end publishing run remain pending. |
+| SOC-015 | Owner-requested Playwright UI execution and manual n8n orchestration | UI source discovery, protected profiles, exact approval, sequential submit/receipt/writeback, restart-safe reconciliation and fixed private operations | [Browser execution](SOC-015-PLAYWRIGHT.md) implemented and validated with 42 local tests, including seven Playwright UI fixtures, and strict TypeScript. Two inactive manual n8n workflows imported and read back; two additional inactive TikTok workflows bind Personal and Business to separate manifests while sharing the local worker. Dedicated portfolio and both TikTok logins confirmed across a worker restart; fixed read-only inspection and composer hydration wait added. Google popup closure fixed with a manual-only exact OAuth origin allowance. Portfolio TOD-127 production release and one separately approved TikTok Business pilot verified with public receipt and cloud ledger readback. Result forms bind the exact target independently of Reach forms. An inactive Pinterest Business workflow was added for `@codeonroids` and its CodeOnRoids board; its live identity inspection returned a blank page, so account identity, selectors, planning and Pin publication remain unverified. X and Pinterest Personal still lack calibrated provider controls and a verified publication run. General runner selectors, remaining providers and live n8n publishing remain pending. |
+| SOC-016 | Owner-requested manual UI publishing for existing Tips & Tricks / Reach packs across the six configured manual account targets; extends SOC-015 | Read the visible Reach pack archive and per-target delivery state; freeze ordered images/copy/account/destination/visibility in an approved manifest; verify the full media set in composer and public receipt; write one public permalink to the Reach delivery ledger; keep one inactive, manual n8n workflow per account; no generation or schedule | Reserved after auditing all local/remote refs and commit subjects: SOC-015 is the highest Git ticket, `origin/main` matches `HEAD`, and no SOC-016 branch collision existed. Branch `codex/SOC-016-reach-pack-publishing` created. Reach discovery, multi-image verification and six inactive account-bound n8n exports are implemented; `npm run typecheck` passes and all six imported workflows read back inactive. Existing-profile contention now returns an explicit stop without launching a duplicate browser. No provider publishing run was started. Live account selectors, UI media limits, Reddit category routes, provider receipts, and portfolio writeback remain pending. X packs over four images, Pinterest Business packs over five, and multi-image Pinterest Personal packs remain unresolved until grouped-post strategies exist. See [Reach pack flows](SOC-016-REACH-PACKS.md). Glassdoor is not one of the six configured targets and needs a separate capability/account mapping before it can be included. |
+| SOC-017 | Owner-authorized recurring publication at 17:00 Europe/Bucharest for the six existing account targets; extends SOC-015 and SOC-016 without changing their manual n8n workflows | Fixed target order; fresh per-target progress reconciliation; finite per-run manifest; existing source copy/media; active identity checks; duplicate-safe receipts and portfolio readback; official X API only with a verified canonical-link preview card; independent target stops | Scope authorized and reserved after auditing all local/remote refs and commit subjects: SOC-016 is the highest Git ticket, `origin/main` matches `HEAD`, and no `codex/SOC-017-daily-publishing` branch collision existed. Daily Codex heartbeat is active. Scheduled worker integration, X API availability, current session identities, and live public receipts remain unverified; no new publication is claimed. |
 
 SOC-015 follow-up: the distinct `random_for_you_top10` policy is implemented.
 All 44 local tests, including nine Playwright UI fixtures, and strict TypeScript
@@ -522,6 +573,28 @@ those workflows. SOC-018 is allocated for the separately authorized efficiency w
 | SOC-019 | Repair eleven failures exclusive to the owner's existing dirty browser runtime | Exact SHA-256-locked patch, three photo-composer defects, current synthetic fixture contracts, no unrelated Reach integration or activation | Reserved after auditing fresh origin refs and all SOC commit subjects: SOC-018 is the Git maximum. Isolated owner snapshot plus six merged cache tests passes 66/66; clean main's original 50 tests and four installer regressions pass. Independent review, repository delivery and exact owner installation are recorded separately. See [bounded dirty runtime repair](SOC-019-DIRTY-RUNTIME-REPAIR.md). |
 
 The next unreserved candidate after this release is SOC-020; audit all refs before allocation.
+Existing provider-session follow-up, retained with the pending Reach release:
+The worker now groups persistent provider sessions into Personal (TikTok Personal,
+Pinterest Personal and Reddit) and Business (TikTok Business, Pinterest Business
+and X), with fixed origin allowlists and per-target identity checks. The groups
+reuse the existing TikTok profile directories so their logins persist; other
+per-target profile folders remain preserved but unused. Additional provider
+sign-in and a new live publishing run remain pending. TikTok now has separate
+inactive, account-bound Personal and Business n8n workflows; its planner emits a
+single-target manifest and the worker enforces that target for publishing and
+recovery. The Pinterest Business follow-up adds a separate inactive manual
+workflow and allows the fixed `www.pinterest.com` / `ro.pinterest.com` origins
+inside the Business profile. The owner board mapping is CodeOnRoids. A live
+read-only identity inspection returned an empty page, and a second attempt could
+not reuse the closed Pinterest page in the running worker. The existing Business
+window showed the local owner workspace; its Pinterest link opened a blank tab
+and the window could no longer be inspected. Worker restart and a new browser
+launch were deferred. The source allowlist and closed-page filter were not loaded
+in that process. Pinterest Personal and the remaining X backlog were not
+published in this SOC-015 follow-up. SOC-016 now adds Reach discovery and account-
+bound inactive flows, but live selectors, account identity, submissions, receipts
+and writeback remain unverified. SOC-018 and SOC-019 are retained above; this
+release does not allocate a new scheduler or start a publication run.
 
 During implementation, maintain a capability matrix per account: transport,
 source/device checks, fixture validation, real-pilot evidence, and enablement
@@ -601,6 +674,5 @@ restrictions; they do not establish access for the owner's apps/accounts.
 - [TikTok Content Sharing Guidelines](https://developers.tiktok.com/docs/en/content-sharing-guidelines): Direct Post eligibility, private unaudited restrictions, creator controls.
 - [TikTok upload guide](https://developers.tiktok.com/docs/en/content-posting-api-get-started-upload-content): approved upload scope, draft completion by the user, photo support.
 - [TikTok Commercial Music Library](https://ads.tiktok.com/resources/help/article/how-to-use-the-commercial-music-library?lang=en): Personal/Business library differences and region/placement selection.
-- [X automation rules](https://help.x.com/en/rules-and-policies/x-automation): no non-API website scripting, consent and duplication constraints.
 - [Reddit Responsible Builder Policy](https://support.reddithelp.com/hc/en-us/articles/42728983564564-Responsible-Builder-Policy): explicit API-access approval and commercial-use approval.
 - [Pinterest Developers](https://developers.pinterest.com/): API/access documentation entry point; exact account eligibility and Pin field contract remain to be verified in SOC-002.

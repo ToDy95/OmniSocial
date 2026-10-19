@@ -117,6 +117,38 @@ export class Operations {
     check(this.attempt(id, itemId).state === 'submitting', 'invalid_unknown_transition');
     this.db.prepare('UPDATE attempts SET state=? WHERE run_id=? AND item_id=?').run('submission_unknown', id, itemId);
   }
+  provePreClickFailure(id: string, itemId: string) {
+    return this.transaction(() => {
+      const run = this.db.prepare('SELECT * FROM runs WHERE id=?').get(id) as Run | undefined;
+      check(run, 'run_missing');
+      const attempt = this.attempt(id, itemId);
+      check(attempt.state === 'submission_unknown' && !attempt.receipt, 'attempt_not_reconcilable');
+      const manifestItem = (this.manifest(run.manifest_id).items as { itemId: string; target: string }[])
+        .find(item => item.itemId === itemId);
+      check(manifestItem?.target.startsWith('tiktok'), 'preclick_resolution_scope');
+      const prepared = this.db.prepare('SELECT receipt_url FROM browser_prepared WHERE run_id=? AND item_id=?')
+        .get(id, itemId) as { receipt_url: string | null } | undefined;
+      check(prepared && !prepared.receipt_url, 'receipt_already_observed');
+      const jobsTable = this.db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='browser_jobs'").get();
+      if (!jobsTable) throw new Error('receipt_url_required');
+      const jobs = this.db.prepare("SELECT id,output FROM browser_jobs WHERE operation='publish' AND state='finished'").all() as { id: string; output: string | null }[];
+      const proofs = jobs.filter(job => {
+        if (!job.output) return false;
+        try {
+          const result = JSON.parse(job.output);
+          return result.status === 'stopped' && result.runId === id && result.reason === 'unexpected_ui'
+            && result.uiControl === '[contenteditable=true][role=combobox];count=0'
+            && result.report?.run?.id === id && result.report?.run?.manifest_id === run.manifest_id
+            && result.report?.attempts?.some((entry: { run_id?: string; item_id?: string; state?: string }) =>
+              entry.run_id === id && entry.item_id === itemId && entry.state === 'submission_unknown');
+        } catch { return false; }
+      });
+      check(proofs.length === 1, proofs.length ? 'preclick_proof_ambiguous' : 'receipt_url_required');
+      this.db.prepare("UPDATE attempts SET state='failed_before_submit' WHERE run_id=? AND item_id=? AND state='submission_unknown' AND receipt IS NULL")
+        .run(id, itemId);
+      return this.attempt(id, itemId);
+    });
+  }
   receipt(id: string, itemId: string, receipt: { itemId: string; accountId: string; payloadDigest: string; url: string; public: boolean; evidenceDigest: string }) {
     return this.transaction(() => {
       const run = this.db.prepare('SELECT * FROM runs WHERE id=?').get(id) as Run | undefined;
@@ -124,7 +156,8 @@ export class Operations {
       const item: any = this.manifest(run.manifest_id).items.find((i: any) => i.itemId === itemId);
       check(item && receipt.itemId === itemId && receipt.accountId === item.accountId && receipt.payloadDigest === item.payloadDigest, 'receipt_mismatch');
       const url = new URL(receipt.url);
-      const hosts: Record<string, string[]> = { tiktok: ['www.tiktok.com'], reddit: ['www.reddit.com'], x: ['x.com'], pinterest: ['www.pinterest.com'] };
+      const hosts: Record<string, string[]> = { tiktok: ['www.tiktok.com'], reddit: ['www.reddit.com'], x: ['x.com'],
+        pinterest: ['www.pinterest.com', 'ro.pinterest.com'] };
       check(url.protocol === 'https:' && !url.username && !url.password && hosts[item.target.split('_')[0]].includes(url.hostname)
         && url.pathname !== '/' && receipt.public === true && /^[a-f0-9]{64}$/.test(receipt.evidenceDigest), 'receipt_unverified');
       const attempt = this.attempt(id, itemId), body = canonical(receipt);

@@ -7,7 +7,7 @@ setupLocal();
 protectDirectory(join(root, 'runtime/browser'));
 const path = join(root, 'runtime/browser/config.json');
 const config: BrowserConfig = {
-  schemaVersion: 1, owner: 'portfolio-owner', selected: ['tiktok_codeonroids'], cap: 200,
+  schemaVersion: 1, owner: 'portfolio-owner', selected: ['tiktok_personal', 'tiktok_codeonroids'], cap: 200,
   allowedMediaOrigins: [],
   accounts: {
     tiktok_personal: { handle: '@todicarazvan95', identityUrl: 'https://www.tiktok.com/tiktokstudio',

@@ -1,0 +1,306 @@
+{
+  "id": "omnisocialReachX",
+  "name": "SOC-016 · Reach · X",
+  "active": false,
+  "nodes": [
+    {
+      "id": "manual",
+      "name": "Start X Reach flow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "choices",
+      "name": "Choose X action and approved pack lot",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "operation",
+              "name": "operation",
+              "value": "plan",
+              "type": "string"
+            },
+            {
+              "id": "mode",
+              "name": "mode",
+              "value": "dry_run",
+              "type": "string"
+            },
+            {
+              "id": "ownerConfirmed",
+              "name": "ownerConfirmed",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "manifestId",
+              "name": "manifestId",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "digest",
+              "name": "digest",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "view",
+              "name": "view",
+              "value": "identity",
+              "type": "string"
+            },
+            {
+              "id": "runId",
+              "name": "runId",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "itemId",
+              "name": "itemId",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "url",
+              "name": "url",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "contentKind",
+              "name": "contentKind",
+              "value": "reach",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "command",
+      "name": "Run X browser action",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'http://127.0.0.1:8787/v1/browser/' + $json.operation }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.operation === 'publish' ? { jobId: 'reach-x-' + $execution.id, manifestId: $json.manifestId, digest: $json.digest, mode: $json.mode, ownerConfirmed: $json.ownerConfirmed, target: 'x' } : $json.operation === 'login' ? { jobId: 'reach-x-' + $execution.id, target: 'x' } : $json.operation === 'inspect' ? { jobId: 'reach-x-' + $execution.id, target: 'x', view: $json.view } : $json.operation === 'reconcile' ? { jobId: 'reach-x-' + $execution.id, runId: $json.runId, itemId: $json.itemId, target: 'x', ...($json.url ? { url: $json.url } : {}) } : ['stop', 'close'].includes($json.operation) ? { runId: $json.runId, target: 'x' } : { jobId: 'reach-x-' + $execution.id, target: 'x', contentKind: 'reach' }) }}",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "omnisocialWorker",
+          "name": "OmniSocial local worker"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "running",
+      "name": "X Reach browser still working?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "running",
+              "leftValue": "={{ $json.state === 'running' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "wait",
+      "name": "Wait for X Reach browser",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        -120
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 5,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "status",
+      "name": "Read X Reach browser result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        -120
+      ],
+      "parameters": {
+        "url": "={{ 'http://127.0.0.1:8787/v1/browser/jobs/' + $json.jobId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "omnisocialWorker",
+          "name": "OmniSocial local worker"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "result",
+      "name": "X Reach result and next step",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        140
+      ],
+      "parameters": {
+        "jsCode": "const value = $input.first().json; const result = value.result ?? value; const action = result.reason === 'existing_profile_in_use' ? 'The existing X browser profile is already open. Bring that window forward; do not launch another browser or profile.' : result.status === 'review_required' && result.accountReadiness?.some(item => item.identityVerified === false) ? 'Reach manifest ready for review, but this account has no calibrated identity selector. Do not publish until the existing account profile has been checked and its UI controls are configured.' : result.status === 'review_required' ? 'X Reach manifest ready. Review the exact pack, every ordered image, copy, account, destination and visibility; approve this digest only after review.' : result.status === 'awaiting_owner_login' ? 'Finish login in the existing X browser profile, then run plan again. No new browser profile is needed.' : result.status === 'caught_up' && result.progress?.some(item => item.unresolved > 0) ? 'No eligible X Reach packs. Review unresolved or unsupported deliveries in the report before trying again.' : result.status === 'caught_up' || result.status === 'completed' || result.status === 'synchronized' ? 'Read the X Reach progress and receipt report. This workflow never switches accounts.' : 'Inspect the stop reason and reconcile the exact X Reach item before any retry.'; return [{ json: { ...value, action } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Start X Reach flow": {
+      "main": [
+        [
+          {
+            "node": "Choose X action and approved pack lot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choose X action and approved pack lot": {
+      "main": [
+        [
+          {
+            "node": "Run X browser action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run X browser action": {
+      "main": [
+        [
+          {
+            "node": "X Reach browser still working?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X Reach browser still working?": {
+      "main": [
+        [
+          {
+            "node": "Wait for X Reach browser",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "X Reach result and next step",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for X Reach browser": {
+      "main": [
+        [
+          {
+            "node": "Read X Reach browser result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read X Reach browser result": {
+      "main": [
+        [
+          {
+            "node": "X Reach browser still working?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "executionTimeout": 3600
+  },
+  "pinData": {},
+  "tags": []
+}

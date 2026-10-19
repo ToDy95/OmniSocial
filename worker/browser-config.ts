@@ -9,6 +9,11 @@ export const providerOrigins: Record<Target, string> = {
   reddit: 'https://www.reddit.com', x: 'https://x.com',
   pinterest_personal: 'https://www.pinterest.com', pinterest_business: 'https://www.pinterest.com',
 };
+export function allowedProviderOrigins(target: Target): readonly string[] {
+  return target.startsWith('pinterest')
+    ? ['https://www.pinterest.com', 'https://ro.pinterest.com']
+    : [providerOrigins[target]];
+}
 export const composers: Record<Target, string> = {
   tiktok_personal: '/tiktokstudio/upload?from=creator_center&tab=photo',
   tiktok_codeonroids: '/tiktokstudio/upload?from=creator_center&tab=photo',
@@ -19,7 +24,7 @@ export type Controls = {
   identity: string; identityAttribute?: string;
   upload: string; caption: string; title?: string; link?: string;
   destination?: string; destinationOption?: string; destinationReadback?: string;
-  publicControl?: string; publicOption?: string; publicReadback: string; publicText: string;
+  publicControl?: string; publicOption?: string; publicReadback?: string; publicText?: string;
   ownBrand?: string; paidPartnership?: string; aiGenerated?: string;
   submit: string; receiptLink: string; receiptText: string; receiptImage: string;
   receiptAccount: string; receiptAccountAttribute?: string;
@@ -29,6 +34,7 @@ export type Controls = {
   musicOpen?: string; musicTrending?: string; musicForYou?: string; musicRows?: string;
   musicName?: string; musicUse?: string; musicSelected?: string;
   musicClear?: string; musicEmpty?: string;
+  receiptTextAttribute?: string; receiptTitleAttribute?: string; receiptSoundAttribute?: string;
   readyMedia: string;
   postTypeTabs?: { image: string; text: string };
 };
@@ -38,6 +44,7 @@ export type BrowserAccount = {
   disclosures?: { ownBrand: boolean; paidPartnership: boolean; aiGenerated: boolean };
   postType?: 'image' | 'text'; flair?: string | null;
   destinationByCategory?: Record<string, { destination: string; postType?: 'image' | 'text'; flair?: string | null }>;
+  reachDestinationByCategory?: Record<string, { destination: string; postType?: 'image' | 'text'; flair?: string | null }>;
   controls?: Controls;
 };
 export type BrowserConfig = {
@@ -61,7 +68,7 @@ export function readBrowserConfig(): BrowserConfig {
     if (!account || !/^(@|u\/)[a-zA-Z0-9_.-]+$/.test(account.handle)
       || account.visibility !== 'public' || !['none', 'random_trending_top10', 'random_for_you_top10'].includes(account.musicPolicy)) throw new Error('account_configuration_required');
     const identity = new URL(account.identityUrl);
-    if (identity.origin !== providerOrigins[target] || identity.username || identity.password) throw new Error('identity_origin_invalid');
+    if (!allowedProviderOrigins(target).includes(identity.origin) || identity.username || identity.password) throw new Error('identity_origin_invalid');
     if (target.startsWith('pinterest')) {
       const board = new URL(account.destination);
       if (!['https://www.pinterest.com', 'https://ro.pinterest.com'].includes(board.origin)
@@ -71,6 +78,11 @@ export function readBrowserConfig(): BrowserConfig {
       const routes = Object.entries(account.destinationByCategory ?? {});
       if (routes.length > 100 || routes.some(([prefix, route]) => !/^[a-z0-9-]+$/.test(prefix)
         || !/^r\/[a-zA-Z0-9_]{2,40}$/.test(route.destination))) throw new Error('reddit_category_mapping_invalid');
+      const reachRoutes = Object.entries(account.reachDestinationByCategory ?? {});
+      const reachCategories = ['os-shortcuts', 'git-github', 'ai-prompts', 'comparisons', 'languages',
+        'architecture', 'automation', 'design-systems', 'palettes', 'optimization'];
+      if (reachRoutes.length > reachCategories.length || reachRoutes.some(([category, route]) => !reachCategories.includes(category)
+        || !/^r\/[a-zA-Z0-9_]{2,40}$/.test(route.destination))) throw new Error('reddit_reach_category_mapping_invalid');
       if (!/^r\/[a-zA-Z0-9_]{2,40}$/.test(account.destination) && !routes.length) throw new Error('reddit_destination_required');
     } else if (account.destination !== account.handle) throw new Error('account_destination_mismatch');
     if (target.startsWith('tiktok') && !account.disclosures) throw new Error('disclosures_required');
@@ -78,11 +90,16 @@ export function readBrowserConfig(): BrowserConfig {
   }
   return config;
 }
-export function requireControls(account: BrowserAccount): Controls {
+export function requireControls(account: BrowserAccount, target: Target): Controls {
   const controls = account.controls;
-  for (const name of ['identity', 'upload', 'caption', 'publicReadback', 'publicText', 'submit',
+  if (!controls) throw new Error('ui_calibration_required');
+  for (const name of ['identity', 'upload', 'caption', 'submit',
     'receiptLink', 'receiptText', 'receiptImage', 'receiptAccount', 'readyMedia'] as const) {
-    if (!controls || typeof controls[name] !== 'string' || !controls[name].trim()) throw new Error('ui_calibration_required');
+    if (typeof controls[name] !== 'string' || !controls[name].trim()) throw new Error('ui_calibration_required');
   }
+  if (target.startsWith('tiktok') && (!controls.publicReadback?.trim() || !controls.publicText?.trim())) {
+    throw new Error('ui_calibration_required');
+  }
+  if (Boolean(controls.publicReadback) !== Boolean(controls.publicText)) throw new Error('ui_calibration_required');
   return controls!;
 }

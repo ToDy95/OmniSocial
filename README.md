@@ -1,11 +1,12 @@
 # OmniSocial
 
-Manually started orchestration for distributing approved portfolio blog posts to
-the owner's configured social accounts, with verified publication receipts and
+Owner-authorized local automation for distributing eligible portfolio blog posts
+to the configured social accounts, with verified publication receipts and
 recoverable execution records.
 
-The feasibility report and local dry-run foundation are under draft review.
-Account connections and social publishing remain disabled.
+The daily 17:00 Europe/Bucharest Codex heartbeat is active under SOC-017. Its
+configuration is not evidence that account sessions, provider transports, or
+publications have been verified in a scheduled run.
 
 Initial milestone: SOC-001.
 
@@ -27,11 +28,13 @@ delivery record. A manually started run does not imply that every platform allow
 website scripting or supports every media operation.
 
 V2 social research, reviewed engagement, and daily or weekly editorial summaries
-remain deferred. No schedule, workflow execution, account connection, deployment,
-or external social action is included in SOC-001.
+remain deferred. SOC-001 itself does not include a schedule, workflow execution,
+account connection, deployment, or external social action; scheduled publishing
+is separately authorized and tracked under SOC-017.
 
 ## Live browser implementation
 
 The manual Playwright runner and n8n entry points are documented in
-[SOC-015](docs/SOC-015-PLAYWRIGHT.md). Login, UI calibration, portfolio readback
+[SOC-015](docs/SOC-015-PLAYWRIGHT.md). Reach pack flows are tracked in
+[SOC-016](docs/SOC-016-REACH-PACKS.md). Login, UI calibration, portfolio readback
 release and an approved live pilot remain separate from fixture validation.

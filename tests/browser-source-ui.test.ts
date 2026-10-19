@@ -21,7 +21,7 @@ function archive() {
     data-archive-post-id="id-${index}" data-archive-published-at="2026-01-0${index}T00:00:00Z">
     <div data-slot="card-description">/fixture-${index}</div><div data-slot="card-title">Fixture ${index}</div>
     <span>Long: approved</span><div role="tablist"><button role="tab" onclick="this.parentElement.parentElement.querySelector('pre').innerText='Approved fixture ${index}'">Long social post</button></div>
-    <pre>Published: Jan ${index}, 2026\nURL: https://www.razvantodica.com/blog/fixture-${index}</pre></div>`).join('')}</body></html>`;
+    <div role="tabpanel" data-state="active"><pre>Published: Jan ${index}, 2026\nURL: https://www.razvantodica.com/blog/fixture-${index}</pre></div></div>`).join('')}</body></html>`;
 }
 test('Playwright UI discovery respects noncontiguous ledger slugs with no mutation or external network', async () => {
   const browser = await chromium.launch({ headless: true });
@@ -97,6 +97,34 @@ test('Playwright portfolio preparation and receipt writeback use visible forms a
     assert.equal(requests.filter(method => method === 'POST').length, 2);
     assert.deepEqual(await source.sync(item, url, null, 'fixture-sync'), { syncKey: 'fixture-sync', externalUrl: url, result: 'posted' });
     assert.equal(requests.filter(method => method === 'POST').length, 2);
-    await assert.rejects(source.sync(item, url, null, 'wrong-sync'), /source_url_readback_unavailable/);
+    // A saved exact receipt remains authoritative across local recovery keys.
+    assert.deepEqual(await source.sync(item, url, null, 'recovery-sync'), { syncKey: 'recovery-sync', externalUrl: url, result: 'posted' });
+    await assert.rejects(source.sync(item, 'https://www.reddit.com/r/other/comments/fixture/example/', null, 'fixture-sync'), /source_url_readback_unavailable/);
+    assert.equal(requests.filter(method => method === 'POST').length, 2);
+  } finally { await browser.close(); }
+});
+
+test('sync-only recovery accepts an exact owner-recorded public receipt with its existing note', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    const item = { target: 'reddit', slug: 'fixture-1', itemId: 'a'.repeat(64),
+      payload: { title: 'Fixture 1', caption: 'Approved fixture', destination: 'r/fixture', media: null } } as unknown as BrowserItem;
+    const url = 'https://www.reddit.com/r/fixture/comments/fixture/example/';
+    await page.route('**/*', route => route.fulfill({ contentType: 'text/html', body: `<html><body>
+      <div data-slot="card"><div data-slot="card-description">u/Fixture</div>
+        <div role="progressbar" aria-label="Publishing progress" aria-valuenow="2" aria-valuemax="2"
+          data-mobile-target="reddit" data-mobile-processed-slugs='["fixture-1","fixture-2"]'></div>
+      </div>
+      <div data-slot="card"><h3>Recent cloud activity</h3>
+        <div data-mobile-event-slug="fixture-1" data-mobile-event-target="reddit" data-mobile-event-result="posted"
+          data-mobile-event-note="Published manually by owner"><span>fixture-1</span><span>Posted / public</span><a href="${url}">Receipt</a></div>
+      </div></body></html>` }));
+    const sessions = new BrowserSessions(); sessions.page = async () => page;
+    const source = new BrowserSource(sessions, () => {});
+    assert.deepEqual(await source.sync(item, url, null, 'fixture-sync'),
+      { syncKey: 'fixture-sync', externalUrl: url, result: 'posted' });
+    await assert.rejects(source.sync(item, 'https://www.reddit.com/r/other/comments/fixture/example/', null, 'fixture-sync'),
+      /source_url_readback_unavailable/);
   } finally { await browser.close(); }
 });

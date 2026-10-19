@@ -2,8 +2,13 @@ import { createHash } from 'node:crypto';
 import { targets } from './local.ts';
 
 export type Target = typeof targets[number];
-export type Payload = { title: string; caption: string; media: { url: string; sha256: string } | null;
+export type MediaReference = { url: string; sha256: string };
+export type CaptionReuse = { sourceTarget: 'pinterest_business'; sourceManifestId: string; sourcePayloadDigest: string };
+export type Payload = { title: string; caption: string; media: MediaReference | null; mediaItems?: MediaReference[];
+  contentKind?: 'blog' | 'reach';
+  packId?: string; deliveryId?: string;
   destination: string; visibility: 'public' | 'private'; musicPolicy: string; approved: boolean;
+  captionReuse?: CaptionReuse;
   disclosures?: { ownBrand: boolean; paidPartnership: boolean; aiGenerated: boolean };
   postType?: 'image' | 'text'; flair?: string | null };
 export type Snapshot = { owner: string; revision: string; complete: boolean; nextCursor: string | null;
@@ -57,14 +62,18 @@ export function plan(snapshot: Snapshot, selected: Target[], cap: number, asOf: 
     let count = 0;
     for (const article of articles) {
       const payload = article.payloads[target];
+      const media = payload?.mediaItems?.length ? payload.mediaItems : payload?.media ? [payload.media] : [];
       let reason = '';
       if (account.processed.includes(article.id)) reason = 'already_processed';
       else if (account.unresolved.includes(article.id)) reason = 'unresolved_submission';
       else if (Date.parse(article.publishedAt) > now) reason = 'not_published_yet';
       else if (payload?.approved !== true || !payload.title?.trim() || !payload.caption?.trim()) reason = 'unapproved_or_missing_copy';
       else if (!payload.destination?.trim() || !['public', 'private'].includes(payload.visibility) || !payload.musicPolicy?.trim()) reason = 'missing_destination_policy';
-      else if ((target.startsWith('tiktok') || target.startsWith('pinterest')) && !payload.media) reason = 'required_media_missing';
-      else if (payload.media && (!safeUrl(payload.media.url) || !/^[a-f0-9]{64}$/.test(payload.media.sha256))) reason = 'invalid_media_reference';
+      else if ((target.startsWith('tiktok') || target.startsWith('pinterest') || payload?.contentKind === 'reach') && !media.length) reason = 'required_media_missing';
+      else if (media.length > 10 || media.some(reference => !safeUrl(reference.url) || !/^[a-f0-9]{64}$/.test(reference.sha256))) reason = 'invalid_media_reference';
+      else if (new Set(media.map(reference => reference.url)).size !== media.length) reason = 'duplicate_media_reference';
+      else if (payload?.mediaItems?.length && (!payload.media || payload.media.url !== media[0]?.url || payload.media.sha256 !== media[0]?.sha256)) reason = 'invalid_media_reference';
+      else if (payload?.contentKind === 'reach' && (!payload.packId || !payload.deliveryId || media.length < 2)) reason = 'reach_pack_metadata_invalid';
       else if (count >= cap) reason = 'cap_reached';
       if (reason) { exclusions.push({ target, articleId: article.id, reason }); continue; }
       const delivery = { owner: source.owner, articleId: article.id, target, accountId: account.accountId };
