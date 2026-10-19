@@ -67,13 +67,18 @@ It rejects unsafe directory symlinks and improperly protected secret files.
 | `runtime/n8n/` | Dedicated n8n internal data, independent of any other n8n installation |
 | `runtime/journal.sqlite` | WAL + FULL synchronous local schema foundation |
 | `runtime/media/`, `runtime/reports/` | Future local evidence and media; no cleanup automation yet |
-| `profiles/portfolio` | Future dedicated source session |
-| `profiles/<target>` | Six separate future platform sessions, in the configured processing order |
+| `profiles/portfolio` | Dedicated source session |
+| `profiles/tiktok_personal` | Persistent Personal session for TikTok, Pinterest Personal and Reddit |
+| `profiles/tiktok_codeonroids` | Persistent Business session for TikTok, Pinterest Business and X |
 
 Playwright profile files are not encrypted by Playwright. FileVault was observed
-enabled on this Mac on 2026-10-03. Recheck disk encryption on another host.
-Profiles are currently empty; directories do not prove successful login.
-Browser login/profile launch and identity validation are pending implementation.
+enabled on this Mac on 2026-10-03. Recheck disk encryption on another host. The
+worker opens separate persistent Personal and Business profiles, reusing the
+existing TikTok Personal and TikTok Business profile directories as their group
+anchors. It checks the selected account before each publishing action. Other old
+per-target profile folders are left untouched and are no longer opened by the
+grouped runner. Each additional provider needs one owner sign-in in its matching
+group profile; browser cookies remain local across worker restarts.
 
 The journal currently stores only schema metadata. Synthetic reopen checks prove
 SQLite persistence, not durable publication attempts, receipts, fencing or sync.
@@ -86,8 +91,20 @@ It supplies only the required environment to the child process. The same scoped
 launcher is used for CLI operations, so they use this project's data and key.
 Do not invoke the n8n binary directly, even for help: upstream CLI initialization
 can create a default settings folder outside this project.
-Local owner setup is now complete. One inactive manual health workflow is imported;
-no scheduled or publishing workflow is active.
+Local owner setup is now complete. One inactive manual health workflow is
+imported. A separate owner-authorized Codex heartbeat is active daily at 17:00
+Europe/Bucharest under SOC-017. No n8n publishing schedule is active, and the
+heartbeat configuration alone is not a publication receipt.
+
+`npm run import:pinterest-business` imports the inactive, manually triggered
+**SOC-015 · Pinterest Business** workflow. It uses the existing Business profile
+directory and local worker; it does not start a new browser or publish on import.
+The selected Business target is `@codeonroids` with the fixed CodeOnRoids board
+URL `https://ro.pinterest.com/codeonroids/codeonroids/`. Pinterest navigation is
+restricted to the fixed `www.pinterest.com` and `ro.pinterest.com` origins.
+The current worker process was left running to preserve its existing sessions;
+it has not loaded these source changes yet. Reloading it would close its browser
+windows, so restore the existing Business window before deciding when to restart.
 
 ## Validation
 

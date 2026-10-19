@@ -28,7 +28,10 @@ export class BrowserJobs {
     }, error => {
       this.db.prepare('UPDATE browser_jobs SET state=?,output=? WHERE id=?').run('finished', JSON.stringify({ status: 'stopped',
         reason: error instanceof BrowserStop ? error.message : 'browser_operation_failed',
-        target: error instanceof BrowserStop ? error.target : undefined }), id);
+        target: error instanceof BrowserStop ? error.target : undefined,
+        ...(error instanceof BrowserStop && error.uiControl ? { uiControl: error.uiControl } : {}),
+        ...(['inspect', 'reconcile'].includes(operation) && error instanceof Error ? { errorName: error.name,
+          errorHint: error.message.replace(/https?:\/\/[^\s)]+/g, '[url]').slice(0, 700) } : {}) }), id);
     }).finally(() => { this.busy = false; });
     return this.status(id);
   }

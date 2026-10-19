@@ -21,21 +21,27 @@ posting. The previous assisted adapters remain available independently.
 
 1. Start the local worker and n8n. Run `npm run setup:browser` once. This preserves
    existing protected configuration and never imports everyday Chrome sessions.
-2. Use **SOC-015 · Start browser flow**, action `login`, target `portfolio` or the
-   selected account. Sign in interactively in Google Chrome for Testing. Passwords
-   and MFA codes stay outside n8n and repository files.
-   TikTok's Google sign-in popup may navigate to the exact HTTPS
-   `accounts.google.com` origin during this explicit manual login step. Other
-   external origins remain blocked. Entering automated work ends that allowance;
-   the worker never drives Google sign-in or selects the OAuth popup as a composer.
+2. For TikTok use **SOC-015 · TikTok Personal** or **SOC-015 · TikTok Business**;
+   each workflow is bound to one account for login, planning, publishing and
+   recovery. The generic **SOC-015 · Start browser flow** remains for other
+   selected providers and portfolio login. Provider accounts share two persistent
+   Google Chrome for Testing profiles: Personal reuses `profiles/tiktok_personal`
+   and contains TikTok Personal, Pinterest Personal and Reddit; Business reuses
+   `profiles/tiktok_codeonroids` and contains TikTok Business, Pinterest Business
+   and X. Sign in to each additional provider once in its matching profile. Passwords and MFA codes stay
+   outside n8n and repository files. During an explicit manual provider login,
+   the selected profile may open the exact HTTPS `accounts.google.com` origin;
+   all other external origins remain blocked. Entering automated work ends that
+   allowance, and the worker never drives Google sign-in or selects its popup as
+   a composer.
 3. Calibrate provider controls from observed UI in protected
    `runtime/browser/config.json`. Configuration is local and cannot be supplied
    through a worker request. Configure the approved source media origin, selected
    accounts, destinations, visibility, disclosures and music policy. The setup
-   template initially selects Business TikTok for calibration; it does not enable
-   all accounts or approve any post.
+   template initially selects both TikTok accounts; it does not approve any post.
 4. Start action `plan`. Read the complete owner archive and current account queues
-   through the UI. Respect exact processed slug sets, including noncontiguous
+   through the UI. In either dedicated TikTok workflow, `plan` reads only its
+   fixed account queue. Respect exact processed slug sets, including noncontiguous
    histories. Read compact X copy from the corresponding owner distribution form.
    Plan never presses Prepare, Post or Posted/public. Download only selected media
    and verify original bytes, then freeze the complete manifest.
@@ -51,10 +57,14 @@ posting. The previous assisted adapters remain available independently.
    fill title/caption/link, select the exact board/subreddit and settings, then
    check identity again. Persist the selected sound and `submitting` before Post.
    Recheck stop, lease and expiry immediately before the click.
-7. Require a new matching permalink, open it in an unauthenticated context and
-   verify account, full copy/title, destination, image and selected sound. Save
-   screenshot evidence and a durable receipt before recording Posted/public in
-   the portfolio. Read back the exact saved target/slug/result/URL and sync marker.
+7. Require a new matching permalink. For TikTok, use the same persistent account
+   profile to confirm that TikTok Studio shows the matching post row, exact
+   caption, and visibility `Everyone`; compare its thumbnail with the approved
+   image. The composer readback binds the title and selected sound before the
+   final click. Do not launch another browser or open a second receipt session.
+   For other providers, use their configured public receipt check. Save screenshot
+   evidence and a durable receipt before recording Posted/public in the portfolio.
+   Read back the exact saved target/slug/result/URL.
 8. After the last approved item, read progress once more. This read does not add
    newly discovered posts to the run. A complete report can show 45/45; a capped
    or changed source can legitimately show a remaining count for a future run.
@@ -111,8 +121,11 @@ An already in-flight click can remain uncertain and requires reconciliation.
   only. Preserve the receipt, sound and screenshot across worker restarts.
 - A known pre-submit failure can be closed manually after safe resolution, then
   included in a new reviewed manifest. Closing cannot erase an unknown attempt.
-- Cookie-less receipt access can be blocked by a provider login wall or review
-  delay. That is not evidence of public publication; the attempt stays unresolved.
+- TikTok publication evidence combines its Studio `Everyone` row, exact caption,
+  matching media thumbnail, and permalink in the existing authenticated account
+  profile. For other providers, cookie-less receipt access can be blocked by a
+  login wall or review delay; that is not evidence of public publication and the
+  attempt stays unresolved.
 - Image comparison combines a perceptual signature with color error checks.
   Provider cropping or major changes can require owner review instead of an
   automatic public claim.
@@ -185,3 +198,70 @@ the distinct For You policy with synthetic failure and first-ten tests. All
 44 tests, including nine intercepted Playwright UI fixtures, and strict
 TypeScript passed. This pilot does not
 establish a live n8n end-to-end publishing run or readiness of other providers.
+
+## Grouped persistent sessions
+
+The worker reuses `profiles/tiktok_personal` for TikTok Personal, Pinterest
+Personal and Reddit, and `profiles/tiktok_codeonroids` for TikTok Business,
+Pinterest Business and X. Each group has a fixed provider-origin allowlist;
+account identity remains separately checked for every target. Other existing
+per-target profile folders remain untouched and are not opened by the grouped
+runner. TikTok login is retained from the existing directories; additional
+provider sign-in and a publishing run through the grouped profiles still need
+live verification.
+
+## Account-bound TikTok workflows
+
+`npm run import:tiktok-browser` imports two inactive manual workflows:
+**SOC-015 · TikTok Personal** and **SOC-015 · TikTok Business**. They use the same
+local worker, immutable-manifest planner, approval checks, receipt journal and
+portfolio synchronization. Each n8n workflow fixes its target; the worker scopes
+planning to that account and rejects publishing, reconciliation or run control
+when the manifest belongs to the other account. A plan from the generic browser
+workflow excludes TikTok, and TikTok manifests require the matching account flow
+for publish or recovery. Composer selectors, disclosure settings, music policy
+and persistent profile remain configured per account.
+
+Both TikTok targets must be present in `runtime/browser/config.json` `selected`
+to use both workflows. The setup template enables both targets on a new install;
+existing local settings are preserved. The two workflows share the same local
+browser worker and run one job at a time. This removes account switching and
+cross-account queue ambiguity from the daily path; provider UI time per post is
+still sequential. No new browser instance, schedule or automatic publication is
+created.
+
+## Pinterest Business flow
+
+`npm run import:pinterest-business` imports the inactive manual workflow
+**SOC-015 · Pinterest Business**. It is bound to `pinterest_business` and the
+`@codeonroids` account. The fixed destination is the CodeOnRoids board at
+`https://ro.pinterest.com/codeonroids/codeonroids/`. The local session reuses
+`profiles/tiktok_codeonroids`; the worker allowlists only Pinterest's `www` and
+Romanian `ro` origins for this provider. Pinterest Personal is not selected by
+this workflow and remains a separate future flow for its own CodeOnRoids board.
+
+The workflow starts with a read-only identity inspection. On 2026-10-05 that
+inspection navigated the existing Business profile to Pinterest, but the page
+returned an empty body and blank screenshot. It did not establish a signed-in
+identity or expose composer controls. The run stopped there: no Pin was prepared
+or published, and no portfolio result was changed. Do not treat the browser
+profile name or TikTok sign-in as proof of Pinterest identity.
+
+A second owner-requested attempt could not reuse the closed Pinterest page in the
+running worker. The visible Chrome for Testing window was on the local owner
+workspace, not Pinterest. Following the owner's request to reopen Pinterest, the
+existing workspace link opened an untitled blank tab instead of Pinterest, and
+the window could no longer be inspected. The worker was not restarted and no
+browser was launched; restore the existing Business browser window before
+continuing.
+The source now allows the two fixed Pinterest origins and filters closed page
+handles, but these updates are not loaded in the running worker until restart.
+
+Before planning a Pin, the existing Business profile must show `@codeonroids` in
+Pinterest. Then calibrate the observed upload, title, description, link, board
+picker/readback, visibility, submit and public receipt controls in protected
+local configuration. Planning remains dry-run and yields a finite manifest for
+review. A real submit still requires approval of the exact image, title,
+description, destination URL, CodeOnRoids board and public visibility. The worker
+must verify a matching public Pin URL and board before portfolio writeback. No
+new Chrome instance, schedule, or automatic run is configured.

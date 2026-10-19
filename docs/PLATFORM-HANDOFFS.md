@@ -42,7 +42,7 @@ submission is implemented. Compact captions use a conservative 280 weighted boun
 block copy that the native composer would accept; revise/reapprove explicitly.
 Optional PNG/JPEG images require matched digest and a conservative 5 MiB ceiling.
 Actual identity, native counter/media acceptance, entitlement and public status
-receipt remain open. Source: [X automation rules](https://help.x.com/en/rules-and-policies/x-automation).
+receipt remain open.
 
 SOC-010 adds Personal/Business Pinterest handoffs with independent identities,
 the exact owned writable public board, PNG/JPEG acceptance, conservative title

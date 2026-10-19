@@ -5,7 +5,13 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { root } from '../worker/local.ts';
-import { allowedProfileNavigation, assertSession, BrowserSessions, guardProfileNavigation } from '../worker/browser-session.ts';
+import { allowedProfileNavigation, assertSession, BrowserSessions, existingProfileInUse, guardProfileNavigation, waitForHydratedPage } from '../worker/browser-session.ts';
+
+test('an already-open persistent profile is reported without starting a duplicate browser', () => {
+  assert.equal(existingProfileInUse(new Error('Opening in existing browser session. This usually means that the profile is already in use.')), true);
+  assert.equal(existingProfileInUse(new Error('browser executable was not found')), false);
+  assert.equal(existingProfileInUse('profile is busy'), false);
+});
 
 test('Google OAuth allowance is exact, manual-only and never accepts another host or embedded credentials', () => {
   const origin = 'https://www.tiktok.com';
@@ -16,6 +22,31 @@ test('Google OAuth allowance is exact, manual-only and never accepts another hos
     assert.equal(allowedProfileNavigation(url, origin, true), false);
   }
   assert.equal(allowedProfileNavigation(`${origin}/login`, origin, false), true);
+});
+
+test('session checks ignore hidden challenge controls but stop on a visible CAPTCHA', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.route('**/*', route => route.fulfill({ contentType: 'text/html', body: `<html><body>
+      <iframe id="captcha-frame" src="/captcha" style="display:none"></iframe>
+      <input id="otp" autocomplete="one-time-code" style="display:none">
+    </body></html>` }));
+    await page.goto('https://www.tiktok.com/@fixture/photo/123');
+    await assertSession(page, 'https://www.tiktok.com');
+    await page.locator('#captcha-frame').evaluate(element => (element as HTMLElement).style.display = 'block');
+    await assert.rejects(assertSession(page, 'https://www.tiktok.com'), /security_challenge/);
+  } finally { await browser.close(); }
+});
+
+test('fixed inspection stops on a provider shell that never hydrates', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.route('**/*', route => route.fulfill({ contentType: 'text/html', body: '<html><head></head><body></body></html>' }));
+    await page.goto('https://x.com/home');
+    await assert.rejects(waitForHydratedPage(page, 'https://x.com', 'x', 25), /provider_page_not_hydrated/);
+  } finally { await browser.close(); }
 });
 
 test('fixed profile inspection reads selected UI without writes and excludes credential field values', async () => {
@@ -31,7 +62,7 @@ test('fixed profile inspection reads selected UI without writes and excludes cre
         <input name="email" value="never-export"><input type="password" value="private-fixture">
         <button data-e2e="upload">Upload</button>` });
     });
-    const sessions = new BrowserSessions(); (sessions as any).contexts.set('tiktok_personal', context);
+    const sessions = new BrowserSessions(); (sessions as any).contexts.set('personal', context);
     const account = { handle: '@fixture', identityUrl: 'https://www.tiktok.com/tiktokstudio',
       destination: '@fixture', visibility: 'public', musicPolicy: 'none' } as const;
     const result = await sessions.inspect('tiktok_personal', 'identity', account, jobId);
@@ -60,8 +91,8 @@ test('Playwright preserves manual Google popup, returns to TikTok and ends OAuth
     });
     const sessions = new BrowserSessions();
     // Inject only an intercepted headless fixture context, never real browser state.
-    (sessions as any).contexts.set('tiktok_codeonroids', context);
-    guardProfileNavigation(context, 'https://www.tiktok.com', () => (sessions as any).ownerLogins.has('tiktok_codeonroids'));
+    (sessions as any).contexts.set('business', context);
+    guardProfileNavigation(context, 'https://www.tiktok.com', () => (sessions as any).ownerLogins.has('business'));
     await sessions.login('tiktok_codeonroids', 'https://www.tiktok.com/login');
     const popupEvent = page.waitForEvent('popup');
     await page.getByRole('link', { name: 'Continue with Google' }).click();
@@ -73,7 +104,7 @@ test('Playwright preserves manual Google popup, returns to TikTok and ends OAuth
     await popup.waitForURL('https://www.tiktok.com/oauth/callback');
     assert.equal(popup.isClosed(), false);
     await sessions.page('tiktok_codeonroids');
-    assert.equal((sessions as any).ownerLogins.has('tiktok_codeonroids'), false);
+    assert.equal((sessions as any).ownerLogins.has('business'), false);
     const closed = popup.waitForEvent('close');
     await popup.goto('https://accounts.google.com/o/oauth2/auth').catch(() => {});
     await closed;

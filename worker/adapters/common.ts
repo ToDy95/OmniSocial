@@ -1,7 +1,10 @@
 import { fingerprint } from '../planner.ts';
 export type Item = { itemId: string; target: string; accountId: string; payloadDigest: string;
   canonicalUrl: string; payload: { title: string; caption: string; media: { url: string; sha256: string } | null;
+    mediaItems?: { url: string; sha256: string }[]; contentKind?: 'blog' | 'reach';
+  packId?: string; deliveryId?: string;
     destination: string; visibility: string; musicPolicy: string;
+    captionReuse?: { sourceTarget: 'pinterest_business'; sourceManifestId: string; sourcePayloadDigest: string };
     disclosures?: { ownBrand: boolean; paidPartnership: boolean; aiGenerated: boolean };
     postType?: 'image' | 'text'; flair?: string | null } };
 export type Context = { mode: 'dry_run' | 'publish'; now: string; observedAt: string;

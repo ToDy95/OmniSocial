@@ -1,0 +1,48 @@
+{
+  "id": "omnisocialTikTokPersonal",
+  "name": "SOC-015 · TikTok Personal",
+  "active": false,
+  "nodes": [
+    { "id": "manual", "name": "Start Personal account flow", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [0, 0], "parameters": {} },
+    { "id": "choices", "name": "Choose Personal action and approved lot", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [240, 0], "parameters": { "assignments": { "assignments": [
+      { "id": "operation", "name": "operation", "value": "plan", "type": "string" },
+      { "id": "mode", "name": "mode", "value": "dry_run", "type": "string" },
+      { "id": "confirmed", "name": "ownerConfirmed", "value": false, "type": "boolean" },
+      { "id": "manifest", "name": "manifestId", "value": "", "type": "string" },
+      { "id": "digest", "name": "digest", "value": "", "type": "string" },
+      { "id": "view", "name": "view", "value": "identity", "type": "string" },
+      { "id": "run", "name": "runId", "value": "", "type": "string" },
+      { "id": "item", "name": "itemId", "value": "", "type": "string" },
+      { "id": "receipt", "name": "url", "value": "", "type": "string" }
+    ] }, "options": {} } },
+    { "id": "command", "name": "Run Personal browser action", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [480, 0], "parameters": {
+      "method": "POST", "url": "={{ 'http://127.0.0.1:8787/v1/browser/' + $json.operation }}",
+      "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth", "sendBody": true, "specifyBody": "json",
+      "jsonBody": "={{ JSON.stringify($json.operation === 'publish' ? { jobId: 'browser-' + $execution.id, manifestId: $json.manifestId, digest: $json.digest, mode: $json.mode, ownerConfirmed: $json.ownerConfirmed, target: 'tiktok_personal' } : $json.operation === 'login' ? { jobId: 'browser-' + $execution.id, target: 'tiktok_personal' } : $json.operation === 'inspect' ? { jobId: 'browser-' + $execution.id, target: 'tiktok_personal', view: $json.view } : $json.operation === 'reconcile' ? { jobId: 'browser-' + $execution.id, runId: $json.runId, itemId: $json.itemId, target: 'tiktok_personal', ...($json.url ? { url: $json.url } : {}) } : ['stop', 'close'].includes($json.operation) ? { runId: $json.runId, target: 'tiktok_personal' } : { jobId: 'browser-' + $execution.id, target: 'tiktok_personal' }) }}",
+      "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+    }, "credentials": { "httpHeaderAuth": { "id": "omnisocialWorker", "name": "OmniSocial local worker" } }, "onError": "continueRegularOutput" },
+    { "id": "running", "name": "Personal browser still working?", "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [720, 0], "parameters": {
+      "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+        "conditions": [{ "id": "running", "leftValue": "={{ $json.state === 'running' }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }], "combinator": "and" }, "options": {}
+    } },
+    { "id": "wait", "name": "Wait for Personal browser", "type": "n8n-nodes-base.wait", "typeVersion": 1.1, "position": [960, -120], "parameters": { "resume": "timeInterval", "amount": 5, "unit": "seconds" } },
+    { "id": "status", "name": "Read Personal browser result", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [1200, -120], "parameters": {
+      "url": "={{ 'http://127.0.0.1:8787/v1/browser/jobs/' + $json.jobId }}", "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+      "options": { "timeout": 10000, "response": { "response": { "neverError": true } } }
+    }, "credentials": { "httpHeaderAuth": { "id": "omnisocialWorker", "name": "OmniSocial local worker" } }, "onError": "continueRegularOutput" },
+    { "id": "result", "name": "Personal result and next step", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [960, 140], "parameters": {
+      "jsCode": "const value = $input.first().json; const result = value.result ?? value; const action = result.reason === 'existing_profile_in_use' ? 'The existing Personal browser profile is already open. Bring that window forward; do not launch another browser or profile.' : result.status === 'review_required' ? 'Personal-only manifest ready. Review its exact copy, media, destination, visibility and music; then approve that digest and run publish in this same workflow.' : result.status === 'awaiting_owner_login' ? 'Finish login in the existing Personal browser profile, then run plan again. No new browser profile is needed.' : result.status === 'caught_up' || result.status === 'completed' || result.status === 'synchronized' ? 'Read the Personal progress and receipt report. Do not switch account from this workflow.' : 'Inspect the stop reason and reconcile the exact Personal item before any retry.'; return [{ json: { ...value, action } }];"
+    } }
+  ],
+  "connections": {
+    "Start Personal account flow": { "main": [[{ "node": "Choose Personal action and approved lot", "type": "main", "index": 0 }]] },
+    "Choose Personal action and approved lot": { "main": [[{ "node": "Run Personal browser action", "type": "main", "index": 0 }]] },
+    "Run Personal browser action": { "main": [[{ "node": "Personal browser still working?", "type": "main", "index": 0 }]] },
+    "Personal browser still working?": { "main": [[{ "node": "Wait for Personal browser", "type": "main", "index": 0 }], [{ "node": "Personal result and next step", "type": "main", "index": 0 }]] },
+    "Wait for Personal browser": { "main": [[{ "node": "Read Personal browser result", "type": "main", "index": 0 }]] },
+    "Read Personal browser result": { "main": [[{ "node": "Personal browser still working?", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveExecutionProgress": false, "saveManualExecutions": false, "saveDataSuccessExecution": "none", "saveDataErrorExecution": "none", "executionTimeout": 3600 },
+  "pinData": {},
+  "tags": []
+}

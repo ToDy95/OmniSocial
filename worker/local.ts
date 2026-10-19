@@ -27,7 +27,8 @@ export function secret(name: string): string {
 
 export function setupLocal() {
   process.umask(0o077);
-  for (const dir of ['.secrets', 'runtime', 'runtime/n8n', 'runtime/media', 'runtime/reports', 'profiles', 'profiles/portfolio', ...targets.map(t => `profiles/${t}`)]) {
+  for (const dir of ['.secrets', 'runtime', 'runtime/n8n', 'runtime/media', 'runtime/reports', 'profiles',
+    'profiles/portfolio', 'profiles/tiktok_personal', 'profiles/tiktok_codeonroids']) {
     protectDirectory(join(root, dir));
   }
   for (const name of ['worker-token', 'n8n-encryption-key']) {
