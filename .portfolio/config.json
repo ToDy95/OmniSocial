@@ -1,0 +1,51 @@
+{
+  "title": "OmniSocial",
+  "slug": "omnisocial",
+  "status": "mvp",
+  "priority": 7,
+  "type": "Controlled social publishing operations",
+  "description": "Give approved content a traceable path to social accounts. Prepare account-specific payloads, track publication evidence and recover interrupted runs with a private operator workflow.",
+  "techStack": [
+    "TypeScript",
+    "Node.js",
+    "Playwright",
+    "n8n",
+    "SQLite",
+    "Sharp"
+  ],
+  "visibility": "private",
+  "display": {
+    "showImplementationPlan": true,
+    "showActivityGraph": false,
+    "showRoadmap": true,
+    "showRecentCommits": false,
+    "showIssues": false,
+    "showPullRequests": false
+  },
+  "links": {
+    "github": "https://github.com/ToDy95/OmniSocial"
+  },
+  "focusAreas": [
+    "Approved content distribution",
+    "Account-specific publishing",
+    "Publication evidence and recovery"
+  ],
+  "roadmap": [
+    {
+      "title": "Bounded manifests, payload approval and journal recovery",
+      "status": "done"
+    },
+    {
+      "title": "Browser adapters and manual reach workflows",
+      "status": "done"
+    },
+    {
+      "title": "Account readiness and provider-specific live verification",
+      "status": "in-progress"
+    },
+    {
+      "title": "Broader research and engagement workflows under separate scope",
+      "status": "planned"
+    }
+  ]
+}

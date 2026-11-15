@@ -1,5 +1,16 @@
 # OmniSocial V1 Implementation Plan
 
+## SOC-020: public sales brief
+
+Status: in progress; PR review and portfolio cache synchronization pending.
+
+Add the public-safe portfolio opt-in and describe the implemented publishing
+workflow for potential clients. Acceptance: audience, problem, current capability,
+operational limits and contact step; valid bounded JSON and public-safe Markdown.
+This documentation task starts no publishing runs or schedules and preserves
+unrelated local runtime work. Validation: JSON, public links, plan consistency
+and diff review. Live provider checks are outside this documentation update.
+
 Date: 2026-10-03. Timezone for operator-facing dates: Europe/Bucharest.
 
 Status: SOC-001 through SOC-012 are squash-merged into main after explicit owner
