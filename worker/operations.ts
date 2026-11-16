@@ -63,6 +63,7 @@ export class Operations {
     return this.transaction(() => {
       const existing = this.db.prepare('SELECT * FROM runs WHERE id=?').get(id) as Run | undefined;
       if (existing) { check(existing.manifest_id === manifestId, 'run_key_conflict'); return existing; }
+      check(this.epoch === Number(this.db.prepare("SELECT value FROM runtime_metadata WHERE key='epoch'").get()!.value), 'worker_restarted');
       this.approved(manifestId, now);
       const manifest = this.manifest(manifestId);
       const items = manifest.items as { itemId: string }[];

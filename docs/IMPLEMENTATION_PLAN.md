@@ -1,5 +1,14 @@
 # OmniSocial V1 Implementation Plan
 
+## SOC-021: stale-worker run allocation
+
+Status: source candidate; all 73 repository tests, including synthetic Chromium
+fixtures, and strict typecheck passed; independent review pending. Reserved from
+fresh origin/all-ref/commit-subject audit, maximum SOC-020. Reject a stale worker's
+new run before any fence/account lease allocation; preserve existing idempotent
+reads, uncertain attempts and sync-only recovery. No real account, schedule or
+provider actions; browser tests use isolated synthetic fixtures. See [recovery fencing and dated authorization matrix](SOC-021-RECOVERY-FENCING.md).
+
 ## SOC-020: public sales brief
 
 Status: in progress; PR review and portfolio cache synchronization pending.

@@ -58,6 +58,52 @@ test('expiry blocks starts and prepared submissions without recording a submissi
     assert.equal(s.ops.attempt(run.id, s.item.itemId).state, 'ready_to_submit');
   } finally { s.clean(); }
 });
+test('a stale worker cannot allocate a new run, fence or account lease after another boot', () => {
+  const s = setup();
+  try {
+    const current = new Operations(s.db);
+    const fence = s.db.prepare("SELECT value FROM runtime_metadata WHERE key='fence'").get()!.value;
+    assert.throws(() => s.ops.openRun('stale-run', s.manifest.manifestId, now), /worker_restarted/);
+    assert.equal(s.db.prepare('SELECT count(*) AS n FROM runs').get()!.n, 0);
+    assert.equal(s.db.prepare('SELECT count(*) AS n FROM leases').get()!.n, 0);
+    assert.equal(s.db.prepare("SELECT value FROM runtime_metadata WHERE key='fence'").get()!.value, fence);
+    current.approve(s.manifest.manifestId, s.manifest.owner, s.manifest.digest, now);
+    const run = current.openRun('current-run', s.manifest.manifestId, now);
+    assert.equal(run.epoch, current.epoch);
+    assert.equal(s.db.prepare('SELECT count(*) AS n FROM leases').get()!.n, 1);
+    // Idempotent lookup is a read, not permission for this stale instance to submit.
+    assert.deepEqual(s.ops.openRun(run.id, s.manifest.manifestId, now), run);
+    assert.throws(() => s.ops.prepare(run.id, s.item.itemId, run.fence, now), /stale/);
+  } finally { s.clean(); }
+});
+test('new-run epoch fencing preserves existing uncertainty, leases and recovery reads', () => {
+  const s = setup();
+  try {
+    const run = s.ops.openRun('existing-run', s.manifest.manifestId, now);
+    s.ops.prepare(run.id, s.item.itemId, run.fence, now);
+    s.ops.submitting(run.id, s.item.itemId, run.fence, now, s.item);
+    const current = new Operations(s.db);
+    const stopped = s.ops.openRun(run.id, s.manifest.manifestId, now);
+    assert.equal(stopped.state, 'restart_requires_reconciliation');
+    assert.equal(current.attempt(run.id, s.item.itemId).state, 'submission_unknown');
+    assert.throws(() => s.ops.openRun('stale-new-run', s.manifest.manifestId, now), /worker_restarted/);
+    current.approve(s.manifest.manifestId, s.manifest.owner, s.manifest.digest, now);
+    assert.throws(() => current.openRun('fresh-new-run', s.manifest.manifestId, now), /prior_attempt_requires_reconciliation/);
+    assert.throws(() => current.release(run.id), /unresolved_attempts/);
+    assert.equal(s.db.prepare('SELECT count(*) AS n FROM leases WHERE run_id=?').get(run.id)!.n, 1);
+  } finally { s.clean(); }
+});
+test('new-run fencing reads the durable epoch across separate synthetic journal connections', () => {
+  const s = setup(), other = openJournal(join(s.dir, 'journal.sqlite'));
+  try {
+    const current = new Operations(other);
+    assert.throws(() => s.ops.openRun('stale-connection', s.manifest.manifestId, now), /worker_restarted/);
+    assert.equal(other.prepare('SELECT count(*) AS n FROM leases').get()!.n, 0);
+    current.approve(s.manifest.manifestId, s.manifest.owner, s.manifest.digest, now);
+    const run = current.openRun('current-connection', s.manifest.manifestId, now);
+    assert.equal(s.ops.report(run.id).run.epoch, current.epoch);
+  } finally { other.close(); s.clean(); }
+});
 test('receipt precedes sync, failed/readback-lost sync cannot submit, repeated receipts reconcile only', () => {
   const s = setup();
   try {
